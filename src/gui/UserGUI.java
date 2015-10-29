@@ -1,11 +1,14 @@
 package gui;
 
 import java.awt.EventQueue;
+import java.io.File;
+import java.util.Vector;
 
 import javax.swing.JFrame;
 import net.miginfocom.swing.MigLayout;
 import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JTextPane;
@@ -13,7 +16,11 @@ import javax.swing.JProgressBar;
 
 public class UserGUI {
 
+	private static final String DATA_PATH = System.getProperty("user.dir") + "\\data\\";
+	private String[] dataList;
+	
 	private JFrame frmClusteringAlgorithm;
+	
 
 	/**
 	 * Launch the application.
@@ -35,9 +42,16 @@ public class UserGUI {
 	 * Create the application.
 	 */
 	public UserGUI() {
+		fillDataBox();
 		initialize();
 	}
-
+	
+	// Scans the DATA_PATH directory for excel data files
+		private void fillDataBox(){
+			File f = new File(DATA_PATH);
+			dataList = f.list();
+		}
+	
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -45,13 +59,13 @@ public class UserGUI {
 		frmClusteringAlgorithm = new JFrame();
 		frmClusteringAlgorithm.setTitle("Clustering Algorithm");
 		frmClusteringAlgorithm.setResizable(false);
-		frmClusteringAlgorithm.setBounds(100, 100, 311, 385);
+		frmClusteringAlgorithm.setBounds(100, 100, 314, 385);
 		frmClusteringAlgorithm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClusteringAlgorithm.getContentPane().setLayout(null);
 		
 		JComboBox algorithmComboBox = new JComboBox();
 		algorithmComboBox.setModel(new DefaultComboBoxModel(new String[] {"K-Means"}));
-		algorithmComboBox.setBounds(10, 26, 97, 20);
+		algorithmComboBox.setBounds(10, 26, 115, 20);
 		frmClusteringAlgorithm.getContentPane().add(algorithmComboBox);
 		
 		JLabel algorithmLabel = new JLabel("Clustering Algorithm");
@@ -72,11 +86,20 @@ public class UserGUI {
 		frmClusteringAlgorithm.getContentPane().add(btnCancel);
 		
 		JTextPane output = new JTextPane();
-		output.setBounds(10, 57, 287, 247);
+		output.setBounds(10, 57, 287, 226);
 		frmClusteringAlgorithm.getContentPane().add(output);
 		
 		JProgressBar progressBar = new JProgressBar();
-		progressBar.setBounds(117, 32, 180, 14);
+		progressBar.setBounds(64, 294, 180, 14);
 		frmClusteringAlgorithm.getContentPane().add(progressBar);
+		
+		JComboBox dataComboBox = new JComboBox<String>(dataList);
+		dataComboBox.setBounds(182, 26, 115, 20);
+		frmClusteringAlgorithm.getContentPane().add(dataComboBox);
+		
+		JLabel lblDataFile = new JLabel("Data File");
+		lblDataFile.setLabelFor(dataComboBox);
+		lblDataFile.setBounds(182, 11, 46, 14);
+		frmClusteringAlgorithm.getContentPane().add(lblDataFile);
 	}
 }
