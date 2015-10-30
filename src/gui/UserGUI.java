@@ -2,22 +2,22 @@ package gui;
 
 import java.awt.EventQueue;
 import java.io.File;
-import java.util.Vector;
 
-import javax.swing.JFrame;
-import net.miginfocom.swing.MigLayout;
-import javax.swing.JComboBox;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.DefaultListModel;
-import javax.swing.JLabel;
 import javax.swing.JButton;
-import javax.swing.JTextPane;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JProgressBar;
+import javax.swing.JTextPane;
+
+import struct.DataSet;
 
 public class UserGUI {
 
 	private static final String DATA_PATH = System.getProperty("user.dir") + "\\data\\";
 	private String[] dataList;
+	private DataSet dataSet;
 	
 	private JFrame frmClusteringAlgorithm;
 	
@@ -44,6 +44,11 @@ public class UserGUI {
 	public UserGUI() {
 		fillDataBox();
 		initialize();
+	}
+	
+	public void currentSolution(DataSet set)
+	{
+		dataSet = set;
 	}
 	
 	// Scans the DATA_PATH directory for excel data files
