@@ -1,6 +1,7 @@
 package struct;
 
 import java.util.HashMap;
+import java.util.Map.Entry;
 
 public class DataPoint {
 	
@@ -63,6 +64,25 @@ public class DataPoint {
 	public double getAttribute(String name)
 	{
 		return point.get(name);
+	}
+	
+	public int GetNumberOfAttributes()
+	{
+		return this.point.size();
+	}
+	
+	public String[] GetAttributeNames()
+	{
+		String[] names =  new String[this.point.size()];
+		int count = 0;
+		
+		for (Entry<String, Double> entry : this.point.entrySet())
+		{
+			names[count] = entry.getKey();
+			count++;
+		}
+		
+		return names;
 	}
 	
 	public String toString()

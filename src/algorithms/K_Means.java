@@ -11,7 +11,7 @@ import struct.DataSet;
 
 public class K_Means implements I_Algorithm {
 	
-	private volatile DataSet dataSet;
+	private DataSet dataSet;
 	private boolean isRunning;
 	private int clusters;
 	private UserGUI userGUI;
@@ -75,7 +75,7 @@ public class K_Means implements I_Algorithm {
 		
 		if(set.getDataSetSize() < clusters)
 		{
-			gui.MessageBox.show("You have entered more clusters than available points.!!!!!  \nDumb ASS","ERROR");
+			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
 			dataSet = null;
 			return;
 		}
