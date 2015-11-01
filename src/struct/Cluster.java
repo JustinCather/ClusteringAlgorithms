@@ -1,7 +1,10 @@
 package struct;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
+
+import jxl.read.biff.BiffException;
 
 public class Cluster 
 {
@@ -17,6 +20,9 @@ public class Cluster
 		this.centroid = null;
 	}
 	
+	/** This needs to be set to same values from the DataSet
+	 * @param names The attribute names to use. 
+	 */
 	public static void SetAttributeNames(ArrayList<String> names)
 	{
 		Cluster.ATTRIBUTE_NAMES = names;
@@ -81,7 +87,7 @@ public class Cluster
 		// Need at least two points to find a new centroid.
 		if (this.GetDataPoints().size() > 1)
 		{
-			int[] sums = new int[Cluster.ATTRIBUTE_NAMES.size()];
+			double[] sums = new double[Cluster.ATTRIBUTE_NAMES.size()];
 			// Zero out the sum array.
 			for (int i = 0; i < sums.length; i++)
 			{
@@ -144,5 +150,37 @@ public class Cluster
 	public int GetClusterID()
 	{
 		return this.clusterID;
+	}
+	
+	public static void main(String[] args) throws BiffException, IOException
+	{
+		DataSet winning = DataSet.CreateFromExcel("E:\\temp\\ClusteringAlgorithms\\ClusteringAlgorithms\\data\\Iris Data Set.xls");
+		
+		Cluster.SetAttributeNames(winning.getAttributes());
+		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+		int clusterCount = 0;
+		Cluster temp = new Cluster(clusterCount);
+		
+		for (int i = 0; i < winning.getDataSetSize(); i++)
+		{
+			if (i != 0 && i % 50 == 0)
+			{
+				clusterCount++;
+				clusters.add(temp);
+				temp = new Cluster(clusterCount);
+			}
+			
+			temp.AddDataPoint(winning.getPoint(i));
+		}
+		
+		if (!clusters.contains(temp))
+			clusters.add(temp);
+		
+		for (int i = 0; i < clusters.size(); i++)
+		{
+			System.out.println("Cluster " + clusters.get(i).clusterID + ":");
+			clusters.get(i).RecalculateCentroid();
+			clusters.get(i).GetCentroid().toString();
+		}
 	}
 }

@@ -86,7 +86,7 @@ public class DataSet
 		return points.size();
 	}
 	
-	private static DataSet CreateFromExcel(String path) throws BiffException, IOException
+	public static DataSet CreateFromExcel(String path) throws BiffException, IOException
 	{
 		DataSet temp = new DataSet();
 		Workbook workbook = Workbook.getWorkbook(new File(path));
