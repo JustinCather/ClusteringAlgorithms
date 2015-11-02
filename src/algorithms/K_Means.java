@@ -71,16 +71,16 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public void set(DataSet set, int clusters, UserGUI ugui) {
+	public void set(DataSet set, int numClusters, UserGUI ugui) {
 		
-		if(set.getDataSetSize() < clusters)
+		if(set.getDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
 			dataSet = null;
 			return;
 		}
 		dataSet = set;
-		this.clusters = clusters;
+		this.clusters = numClusters;
 		userGUI = ugui;
 		pickInitCentroids();
 	}
@@ -97,7 +97,7 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public void stop() {
+	public void CheckStoppingCondition() {
 		// TODO Auto-generated method stub
 
 	}

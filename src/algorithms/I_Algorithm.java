@@ -7,12 +7,12 @@ public interface I_Algorithm {
 	
 	void start() throws InterruptedException;
 	
-	void set(DataSet set, int clusters, UserGUI gui);
+	void set(DataSet set, int numClusters, UserGUI gui);
 	
 	boolean isRunning();
 	
 	DataSet currentSolution();
 	
-	void stop();
+	void CheckStoppingCondition();
 
 }

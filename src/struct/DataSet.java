@@ -26,6 +26,14 @@ public class DataSet
 		isPlotting = false;
 	}
 	
+	public void ResetVisited()
+	{
+		for (int i = 0; i < points.size(); i++)
+		{
+			points.get(i).setVisited(false);
+		}
+	}
+	
 	public boolean getIsPlotting()
 	{
 		return isPlotting;
