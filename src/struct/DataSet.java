@@ -7,7 +7,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import algorithms.I_Algorithm;
-import algorithms.K_Means;
+import algorithms.K_Means_Original;
 import gui.UserGUI;
 import jxl.Sheet;
 import jxl.Workbook;
@@ -128,7 +128,7 @@ public class DataSet
 		
 		int centers = 3;
 		
-		I_Algorithm k = new K_Means();
+		I_Algorithm k = new K_Means_Original();
 		k.set(winning, 3,new UserGUI());
 		try
 		{
