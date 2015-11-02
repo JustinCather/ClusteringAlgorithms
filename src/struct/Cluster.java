@@ -2,7 +2,9 @@ package struct;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import jxl.read.biff.BiffException;
 
@@ -49,7 +51,21 @@ public class Cluster
 	 */
 	public void AddDataPoint(DataPoint p)
 	{
+		p.setClusterNumber(this.GetClusterID());
 		this.dataPoints.add(p);
+	}
+	
+	public void AddDataPoints(LinkedList<DataPoint> points)
+	{
+		this.dataPoints.addAll(points);
+	}
+	
+	/** Check to see if this cluster has any data points in it.
+	 * @return True if there is at least one data point.
+	 */
+	public boolean HasDataPoints()
+	{
+		return this.dataPoints.size() > 0;
 	}
 	
 	/**
@@ -152,10 +168,39 @@ public class Cluster
 		return this.clusterID;
 	}
 	
+	/** Gets the current statistics for this cluster.
+	 * @return A formatted string consisting of total data points,
+	 * and a count for each class present in the cluster and its percent.
+	 */
+	public String ClusterStats()
+	{
+		int ptsNum = dataPoints.size();
+		String results = "Total Points = " + ptsNum + "\r\n";
+		HashMap<String, Integer> counts = new HashMap<String, Integer>();	
+		
+		for (int i = 0; i < dataPoints.size(); i++)
+		{
+			try {
+				String type = dataPoints.get(i).getType();
+				counts.put(type, counts.get(type) + 1);
+			} catch (Exception e) {
+				String type = dataPoints.get(i).getType();
+				counts.put(type, 1);
+			}
+		}
+		
+		for (Entry<String, Integer> entry : counts.entrySet())
+		{
+			double percent = ((double) entry.getValue()) / ptsNum * 100;
+			results += "\t" + entry.getValue() + " " + entry.getKey() + " " + percent + "% \r\n";
+		}
+		
+		return results;
+	}
+	
 	public static void main(String[] args) throws BiffException, IOException
 	{
 		DataSet winning = DataSet.CreateFromExcel("E:\\temp\\ClusteringAlgorithms\\ClusteringAlgorithms\\data\\Iris Data Set.xls");
-		
 		Cluster.SetAttributeNames(winning.getAttributes());
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		int clusterCount = 0;
