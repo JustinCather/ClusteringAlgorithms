@@ -60,7 +60,7 @@ public class Hierarchical implements I_Algorithm
 				i++;
 			}
 			
-			System.out.println("Results...\r\n");
+			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)
 			{
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
@@ -247,7 +247,7 @@ public class Hierarchical implements I_Algorithm
 
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException 
 	{
-		DataSet winning = DataSet.CreateFromExcel("E:\\temp\\ClusteringAlgorithms\\ClusteringAlgorithms\\data\\Iris Data Set.xls");
+		DataSet winning = DataSet.CreateFromExcel(System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls");
 		Cluster.SetAttributeNames(winning.getAttributes());
 		Hierarchical h = new Hierarchical();
 		h.set(winning, 3, new UserGUI());			
