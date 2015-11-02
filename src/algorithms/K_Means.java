@@ -1,11 +1,14 @@
 package algorithms;
 
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
 import gui.UserGUI;
+import jxl.read.biff.BiffException;
+import struct.Cluster;
 import struct.DataPoint;
 import struct.DataSet;
 
@@ -13,10 +16,11 @@ public class K_Means implements I_Algorithm {
 	
 	private DataSet dataSet;
 	private boolean isRunning;
-	private int clusters;
+	private int numClusters;
 	private UserGUI userGUI;
-	private ArrayList<DataPoint> previousCentroids;
-	private ArrayList<DataPoint> currentCentroids;
+	private ArrayList<DataPoint> prvCentroids;
+	private ArrayList<DataPoint> crtCentroids;
+	private ArrayList<Cluster> clusters;
 	
 	public K_Means()
 	{
@@ -33,41 +37,41 @@ public class K_Means implements I_Algorithm {
 		else
 		{
 			isRunning = true;
+			pickInitCentroids();
 			
-			int i = 0;
-			
-			while (i < 10)
+			int i = 0;		
+			while (isRunning)
 			{
 				AssignPoints();
 				RecalcCentroids();
-				if(i%10==0)
+				CheckStoppingCondition();			
+				
+				if(i % 10 == 0)
 				{
 					//dataSet.setIsPlotting(true);
 					userGUI.currentSolution(dataSet);
-				}
 					
-				while (dataSet.getIsPlotting()){Thread.sleep(500);}	
-				i++;
-				
-			}
-			
-			for(int j =0;j<this.currentCentroids.size();j++)
-			{
-				System.out.println("Centriod " + (j+1)+":");//+this.currentCentroids.get(j));
-				System.out.print(this.currentCentroids.get(j));
-				int pointCntr=1;
-				for(int k =0;k<dataSet.getDataSetSize();k++)
-				{
-					if(dataSet.getPoint(k).getClusterNumber()==j)
+					System.out.println(i + "th iteration...");
+					for (int x = 0; x < clusters.size(); x++)
 					{
-						System.out.println("Point " + pointCntr+":");
-						System.out.println(dataSet.getPoint(k));
-						pointCntr++;
+						System.out.println("Cluster " + clusters.get(x).GetClusterID());
+						System.out.println(clusters.get(x).ClusterStats());
 					}
 				}
+				
+				this.ResetPoints();
+					
+				while (dataSet.getIsPlotting()){Thread.sleep(500);}	
+				i++;			
+			}
+			
+			System.out.println("Results...");
+			for (int x = 0; x < clusters.size(); x++)
+			{
+				System.out.println("Cluster " + clusters.get(x).GetClusterID());
+				System.out.println(clusters.get(x).ClusterStats());
 			}
 		}
-
 	}
 
 	@Override
@@ -80,7 +84,7 @@ public class K_Means implements I_Algorithm {
 			return;
 		}
 		dataSet = set;
-		this.clusters = numClusters;
+		this.numClusters = numClusters;
 		userGUI = ugui;
 		pickInitCentroids();
 	}
@@ -98,106 +102,119 @@ public class K_Means implements I_Algorithm {
 
 	@Override
 	public void CheckStoppingCondition() {
-		// TODO Auto-generated method stub
-
+		boolean isSame = true;
+		String[] attr = clusters.get(0).GetCentroid().GetAttributeNames();
+		
+		if (crtCentroids.size() == prvCentroids.size()) 
+		{
+			for (int i = 0; i < crtCentroids.size(); i++) 
+			{
+				for (int j = 0; j < attr.length; j++) 
+				{
+					if (Double.compare(crtCentroids.get(i).getAttribute(attr[j]), prvCentroids.get(i).getAttribute(attr[j])) != 0) 
+					{
+						isSame = false;
+					}
+				}
+			} 
+		}
+		else
+		{
+			isSame = false;
+		}
+		
+		// if not the same keep running.
+		isRunning = !isSame;
 	}
 	
 	private void AssignPoints()
 	{
-		for(int i =0; i< dataSet.getDataSetSize();i++)
+		for(int i = 0; i < dataSet.getDataSetSize(); i++)
 		{
 			DataPoint p = dataSet.getPoint(i);
-			int center = 0;
-			Double distance = getDistance(this.currentCentroids.get(0), p);
-			for(int j=1;j<this.currentCentroids.size();j++)
+			int cluster = 0;
+			double distance = this.clusters.get(0).GetDistance(p);
+			for(int j = 1; j < this.clusters.size(); j++)
 			{
-				double dis = getDistance(this.currentCentroids.get(j),p);
-				if(p == this.currentCentroids.get(j))
-				{
-					p.setClusterNumber(center);
-					continue;
-				}
-				if(dis<distance)
+				double dis =  this.clusters.get(j).GetDistance(p);
+				
+				if (dis < distance)
 				{
 					distance = dis;
-					center = j;
+					cluster = j;
 				}
 			}
 			
-			p.setClusterNumber(center);
+			p.setClusterNumber(this.clusters.get(cluster).GetClusterID());
+			this.clusters.get(cluster).AddDataPoint(p);
 		}
 	}
 	
 	private void RecalcCentroids()
 	{
-		this.previousCentroids = this.currentCentroids;
-		this.currentCentroids = new ArrayList<DataPoint>();
-		ArrayList<DataPoint>[] sorted = new ArrayList[this.clusters];
-		for(int i=0;i<this.clusters;i++)
-			sorted[i]=new ArrayList<DataPoint>();
-		for(int i=0;i<dataSet.getDataSetSize();i++)
-		{
-			sorted[dataSet.getPoint(i).getClusterNumber()].add(dataSet.getPoint(i));
-		}
+		this.prvCentroids = this.crtCentroids;
+		this.crtCentroids = new ArrayList<DataPoint>();
 		
-		for(int i=0;i<this.clusters;i++)
+		for (int i = 0; i < this.clusters.size(); i++)
 		{
-			DataPoint p = new DataPoint();
-			HashMap<String,Double> sums = new HashMap<String,Double>();
-			for(int j=0;j<sorted[i].size();j++)
-			{
-				for(int k =0; k< this.dataSet.getAttributes().size();k++)
-				{
-					if(!sums.containsKey(this.dataSet.getAttributes().get(k)))
-						sums.put(this.dataSet.getAttributes().get(k), 0.0);
-					sums.put(this.dataSet.getAttributes().get(k), sums.get(this.dataSet.getAttributes().get(k))+sorted[i].get(j).getAttribute(this.dataSet.getAttributes().get(k)));
-							
-				}
-			}
-			
-			for(int j = 0; j<sums.size(); j++)
-			{
-				p.addAttribute(this.dataSet.getAttributes().get(j), sums.get(this.dataSet.getAttributes().get(j))/sorted[i].size());
-			}
-			this.currentCentroids.add(p);
-			
+			clusters.get(i).RecalculateCentroid();
+			this.crtCentroids.add(clusters.get(i).GetCentroid());
 		}
 	}
 	
-	private double getDistance(DataPoint one, DataPoint two)
-	{
-		double summation =0;
-		for(int i=0;i<dataSet.getAttributes().size();i++)
-		{
-			double pointOneVal = one.getAttribute(dataSet.getAttributes().get(i));
-			double pointTwoVal = two.getAttribute(dataSet.getAttributes().get(i));
-			summation += Math.pow((pointOneVal-pointTwoVal),2);
-		}
-		summation = Math.sqrt(summation);
-		return summation;
-	}
 	private void pickInitCentroids()
 	{
-		currentCentroids = new ArrayList<DataPoint>();
+		clusters = new ArrayList<Cluster>(this.numClusters);
+		crtCentroids = new ArrayList<DataPoint>();
 		
-		for (int i = 0; i < clusters; i++)
+		for (int i = 0; i < numClusters; i++)
 		{
 			boolean validIndex = false;
+			clusters.add(new Cluster(i));
 			
 			while(!validIndex)
 			{
 				double temp = Math.random() * dataSet.getDataSetSize() - 1;
 				int index = (int)Math.floor(temp);
 				DataPoint tempPoint;
-				tempPoint =dataSet.getPoint(index);
+				tempPoint = dataSet.getPoint(index);
 				
-				if(!currentCentroids.contains(tempPoint))
+				if(!clusters.contains(tempPoint))
 				{
-					currentCentroids.add(tempPoint);
 					validIndex = true;
 					tempPoint.setCentroid(true);
+					crtCentroids.add(tempPoint);
+					clusters.get(i).SetCentroid(tempPoint);
 				}
 			}
+		}
+	}
+	
+	private void ResetPoints()
+	{
+		// only want to clear if still running. Otherwise it would clear the final result.
+		if (isRunning) 
+		{
+			for (int i = 0; i < this.clusters.size(); i++) {
+				this.clusters.get(i).ClearDataPoints();
+			} 
+		}
+	}
+	
+	public static void main(String[] args) throws BiffException, IOException
+	{
+		DataSet winning = DataSet.CreateFromExcel(System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls");
+		Cluster.SetAttributeNames(winning.getAttributes());
+		int centers = 3;	
+		I_Algorithm k = new K_Means();
+		
+		k.set(winning, centers, new UserGUI());
+		try
+		{
+			k.start();
+		}
+		catch(Exception e){
+			e.printStackTrace();
 		}
 	}
 
