@@ -9,8 +9,10 @@ import java.util.HashMap;
 import gui.UserGUI;
 import jxl.read.biff.BiffException;
 import struct.Cluster;
+import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
+import struct.DataModel.SplitMethod;
 
 public class K_Means implements I_Algorithm {
 	
@@ -28,7 +30,7 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public void start() throws InterruptedException {
+	public void Start() throws InterruptedException {
 		if (dataSet == null)
 		{
 			gui.MessageBox.show("No data set.", "No dataset");
@@ -61,7 +63,7 @@ public class K_Means implements I_Algorithm {
 				
 				this.ResetPoints();
 					
-				while (dataSet.getIsPlotting()){Thread.sleep(500);}	
+				while (dataSet.GetIsPlotting()){Thread.sleep(500);}	
 				i++;			
 			}
 			
@@ -75,9 +77,9 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public void set(DataSet set, int numClusters, UserGUI ugui) {
+	public void Set(DataSet set, int numClusters, UserGUI ugui) {
 		
-		if(set.getDataSetSize() < numClusters)
+		if(set.GetDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
 			dataSet = null;
@@ -90,14 +92,13 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public boolean isRunning() {
+	public boolean IsRunning() {
 		return isRunning;
 	}
 
 	@Override
-	public DataSet currentSolution() {
-		// TODO Auto-generated method stub
-		return null;
+	public ArrayList<Cluster> currentSolution() {
+		return this.clusters;
 	}
 
 	@Override
@@ -129,9 +130,9 @@ public class K_Means implements I_Algorithm {
 	
 	private void AssignPoints()
 	{
-		for(int i = 0; i < dataSet.getDataSetSize(); i++)
+		for(int i = 0; i < dataSet.GetDataSetSize(); i++)
 		{
-			DataPoint p = dataSet.getPoint(i);
+			DataPoint p = dataSet.GetPoint(i);
 			int cluster = 0;
 			double distance = this.clusters.get(0).GetDistance(p);
 			for(int j = 1; j < this.clusters.size(); j++)
@@ -174,10 +175,10 @@ public class K_Means implements I_Algorithm {
 			
 			while(!validIndex)
 			{
-				double temp = Math.random() * dataSet.getDataSetSize() - 1;
+				double temp = Math.random() * dataSet.GetDataSetSize() - 1;
 				int index = (int)Math.floor(temp);
 				DataPoint tempPoint;
-				tempPoint = dataSet.getPoint(index);
+				tempPoint = dataSet.GetPoint(index);
 				
 				if(!clusters.contains(tempPoint))
 				{
@@ -201,21 +202,18 @@ public class K_Means implements I_Algorithm {
 		}
 	}
 	
-	public static void main(String[] args) throws BiffException, IOException
+	public static void main(String[] args) throws BiffException, IOException, InterruptedException
 	{
-		DataSet winning = DataSet.CreateFromExcel(System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls");
+		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
+		int clusters = 3;
+		
+		DataModel winning = DataModel.CreateFromExcel(path, SplitMethod.ClassPercent, 75);
 		Cluster.SetAttributeNames(winning.getAttributes());
-		int centers = 3;	
 		I_Algorithm k = new K_Means();
 		
-		k.set(winning, centers, new UserGUI());
-		try
-		{
-			k.start();
-		}
-		catch(Exception e){
-			e.printStackTrace();
-		}
+		k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
+		k.Start();
+
 	}
 
 }

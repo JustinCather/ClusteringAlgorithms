@@ -1,31 +1,21 @@
 package struct;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
-
-import algorithms.I_Algorithm;
-import algorithms.K_Means_Original;
-import gui.UserGUI;
-import jxl.Sheet;
-import jxl.Workbook;
-import jxl.read.biff.BiffException;
 
 public class DataSet 
-{
+{	
 	private LinkedList<DataPoint> points;
 	private boolean isPlotting;
-	private ArrayList<String> attributes;
 	
 	public DataSet()
 	{
-		attributes =  new ArrayList<String>();		
 		points = new LinkedList<DataPoint>();
 		isPlotting = false;
 	}
 	
+	/**
+	 * Resets the IsVisited boolean to false for all data points in the data set.
+	 */
 	public void ResetVisited()
 	{
 		for (int i = 0; i < points.size(); i++)
@@ -34,27 +24,36 @@ public class DataSet
 		}
 	}
 	
-	public boolean getIsPlotting()
+	/** Gets the isPlotting value.
+	 * @return True if plotting, false if not.
+	 */
+	public boolean GetIsPlotting()
 	{
 		return isPlotting;
 	}
 	
-	public void setIsPlotting(boolean value)
+	/** Set the isPlotting value.
+	 * @param value True if plotting, false if not.
+	 */
+	public void SetIsPlotting(boolean value)
 	{
 		isPlotting = value;
 	}
 	
+	/** Add a new data point to this data set.
+	 * @param p The point to add.
+	 */
 	public void AddPoint(DataPoint p)
 	{
 		points.add(p);
 	}
 	
-	public ArrayList<String> getAttributes()
-	{
-		return attributes;
-	}
 	
-	public DataPoint getPoint(int index)
+	/** Gets a data point from the data set.
+	 * @param Index The index of the desired data point.
+	 * @return The datapoint if it exists, null if it does not.
+	 */
+	public DataPoint GetPoint(int index)
 	{
 		if (index > points.size() || index < 0)
 			return null;
@@ -62,82 +61,63 @@ public class DataSet
 			return points.get(index);
 	}
 	
-	public double findMin(String attribute)
+	/** Finds the minimum value for a particular attribute in the data set.
+	 * @param attribute The attribute to perform the search on.
+	 * @return The minimum value for the input attribute, -1 if failed.
+	 */
+	public double FindMin(String attribute)
 	{
 		double temp = Double.MAX_VALUE;
 		
-		for(int i =0; i<points.size();i++)
+		try 
 		{
-			if(points.get(i).getAttribute(attribute)<temp)
+			for(int i = 0; i < points.size(); i++)
 			{
-				temp = points.get(i).getAttribute(attribute);
+				if(points.get(i).getAttribute(attribute)<temp)
+				{
+					temp = points.get(i).getAttribute(attribute);
+				}
 			}
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+			temp = -1.0;
 		}
+		
 		return temp;
 	}
 	
-	public double findMax(String attribute)
+	/** Finds the maximum value for a particular attribute in the data set.
+	 * @param attribute The attribute to perform the search on.
+	 * @return The maximum value for the input attribute, -1 if failed.
+	 */
+	public double FindMax(String attribute)
 	{
 		double temp = Double.MIN_VALUE;
 		
-		for(int i =0; i<points.size();i++)
-		{
-			if(points.get(i).getAttribute(attribute) >temp)
+		try {
+			for(int i = 0; i < points.size(); i++)
 			{
-				temp = points.get(i).getAttribute(attribute);
+				if(points.get(i).getAttribute(attribute) >temp)
+				{
+					temp = points.get(i).getAttribute(attribute);
+				}
 			}
+		} 
+		catch (Exception e) 
+		{
+			e.printStackTrace();
+			temp = -1.0;
 		}
+		
 		return temp;
 	}
 	
-	public int getDataSetSize(){
+	/** Gets the number of data points in the data set.
+	 * @return Integer equal to the number of points in the set.
+	 */
+	public int GetDataSetSize(){
 		return points.size();
 	}
-	
-	public static DataSet CreateFromExcel(String path) throws BiffException, IOException
-	{
-		DataSet temp = new DataSet();
-		Workbook workbook = Workbook.getWorkbook(new File(path));
-		Sheet sheet = workbook.getSheet(0);
-		int row = sheet.getRows();
-		int col = sheet.getColumns();
-		
-		for (int i = 0; i < col - 1; i++)
-		{
-			temp.attributes.add(sheet.getCell(i, 0).getContents());
-		}
-		
-		for(int r = 1; r < row;r++)
-		{
-			DataPoint p = new DataPoint();
-			for(int c =0;c<col;c++)
-			{
-				if(c!=col-1)
-					p.addAttribute(temp.attributes.get(c),Double.parseDouble(sheet.getCell(c,r).getContents()));
-				else
-					p.setType(sheet.getCell(c,r).getContents());
-			}
-			temp.AddPoint(p);
-		}
-		return temp;
-	}
-	
-	public static void main(String[] args) throws BiffException, IOException
-	{
-		DataSet winning = CreateFromExcel("E:\\temp\\ClusteringAlgorithms\\ClusteringAlgorithms\\data\\Iris Data Set.xls");
-		
-		int centers = 3;
-		
-		I_Algorithm k = new K_Means_Original();
-		k.set(winning, 3,new UserGUI());
-		try
-		{
-			k.start();
-		}
-		catch(Exception e)
-		{
-			
-		}
-	}
-
 }

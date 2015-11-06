@@ -7,6 +7,8 @@ import gui.MessageBox;
 import gui.UserGUI;
 import jxl.read.biff.BiffException;
 import struct.Cluster;
+import struct.DataModel;
+import struct.DataModel.SplitMethod;
 import struct.DataPoint;
 import struct.DataSet;
 
@@ -24,7 +26,7 @@ public class Hierarchical implements I_Algorithm
 	}
 	
 	@Override
-	public void start() throws InterruptedException 
+	public void Start() throws InterruptedException 
 	{
 		if (dataSet == null)
 		{
@@ -56,7 +58,7 @@ public class Hierarchical implements I_Algorithm
 				{
 					userGUI.currentSolution(this.dataSet);
 				}
-				while (this.dataSet.getIsPlotting()){Thread.sleep(500);}				
+				while (this.dataSet.GetIsPlotting()){Thread.sleep(500);}				
 				i++;
 			}
 			
@@ -70,10 +72,10 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public void set(DataSet set, int numClusters, UserGUI gui) 
+	public void Set(DataSet set, int numClusters, UserGUI gui) 
 	{
 		// Need a bigger data set than number of clusters.
-		if(set.getDataSetSize() < numClusters)
+		if(set.GetDataSetSize() < numClusters)
 		{
 			MessageBox.show("You have entered more clusters than available points!", "ERROR");
 			this.dataSet = null;
@@ -85,12 +87,12 @@ public class Hierarchical implements I_Algorithm
 			this.userGUI = gui;
 			
 			// Each data point is its own cluster initially.
-			this.clusters = new ArrayList<Cluster>(set.getDataSetSize());
+			this.clusters = new ArrayList<Cluster>(set.GetDataSetSize());
 			
-			for (int i = 0; i < set.getDataSetSize(); i++)
+			for (int i = 0; i < set.GetDataSetSize(); i++)
 			{
 				Cluster temp = new Cluster(i);
-				temp.AddDataPoint(set.getPoint(i));
+				temp.AddDataPoint(set.GetPoint(i));
 				temp.RecalculateCentroid();
 				this.clusters.add(temp);
 			}
@@ -98,16 +100,15 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public boolean isRunning() 
+	public boolean IsRunning() 
 	{
 		return this.isRunning;
 	}
 
 	@Override
-	public DataSet currentSolution() 
+	public ArrayList<Cluster> currentSolution() 
 	{
-		// TODO Auto-generated method stub
-		return null;
+		return this.clusters;
 	}
 
 	@Override
@@ -247,11 +248,15 @@ public class Hierarchical implements I_Algorithm
 
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException 
 	{
-		DataSet winning = DataSet.CreateFromExcel(System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls");
+		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
+		int clusters = 3;
+		
+		DataModel winning = DataModel.CreateFromExcel(path, SplitMethod.ClassPercent, 75);
 		Cluster.SetAttributeNames(winning.getAttributes());
 		Hierarchical h = new Hierarchical();
-		h.set(winning, 3, new UserGUI());			
-		h.start();		
+		
+		h.Set(winning.GetTrainingSet(), 3, new UserGUI());			
+		h.Start();		
 	}
 
 }

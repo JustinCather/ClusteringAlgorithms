@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import jxl.read.biff.BiffException;
+import struct.DataModel.SplitMethod;
 
 public class Cluster 
 {
@@ -200,13 +201,14 @@ public class Cluster
 	
 	public static void main(String[] args) throws BiffException, IOException
 	{
-		DataSet winning = DataSet.CreateFromExcel("E:\\temp\\ClusteringAlgorithms\\ClusteringAlgorithms\\data\\Iris Data Set.xls");
+		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
+		DataModel winning = DataModel.CreateFromExcel(path, SplitMethod.ClassPercent, 75);
 		Cluster.SetAttributeNames(winning.getAttributes());
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		int clusterCount = 0;
 		Cluster temp = new Cluster(clusterCount);
 		
-		for (int i = 0; i < winning.getDataSetSize(); i++)
+		for (int i = 0; i < winning.GetTrainingSet().GetDataSetSize(); i++)
 		{
 			if (i != 0 && i % 50 == 0)
 			{
@@ -215,7 +217,7 @@ public class Cluster
 				temp = new Cluster(clusterCount);
 			}
 			
-			temp.AddDataPoint(winning.getPoint(i));
+			temp.AddDataPoint(winning.GetTrainingSet().GetPoint(i));
 		}
 		
 		if (!clusters.contains(temp))

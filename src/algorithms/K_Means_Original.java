@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import gui.UserGUI;
+import struct.Cluster;
 import struct.DataPoint;
 import struct.DataSet;
 
@@ -24,7 +25,7 @@ public class K_Means_Original implements I_Algorithm {
 	}
 
 	@Override
-	public void start() throws InterruptedException {
+	public void Start() throws InterruptedException {
 		if (dataSet == null)
 		{
 			gui.MessageBox.show("No data set.", "No dataset");
@@ -46,7 +47,7 @@ public class K_Means_Original implements I_Algorithm {
 					userGUI.currentSolution(dataSet);
 				}
 					
-				while (dataSet.getIsPlotting()){Thread.sleep(500);}	
+				while (dataSet.GetIsPlotting()){Thread.sleep(500);}	
 				i++;
 				
 			}
@@ -56,12 +57,12 @@ public class K_Means_Original implements I_Algorithm {
 				System.out.println("Centriod " + (j+1)+":");//+this.currentCentroids.get(j));
 				System.out.print(this.currentCentroids.get(j));
 				int pointCntr=1;
-				for(int k =0;k<dataSet.getDataSetSize();k++)
+				for(int k =0;k<dataSet.GetDataSetSize();k++)
 				{
-					if(dataSet.getPoint(k).getClusterNumber()==j)
+					if(dataSet.GetPoint(k).getClusterNumber()==j)
 					{
 						System.out.println("Point " + pointCntr+":");
-						System.out.println(dataSet.getPoint(k));
+						System.out.println(dataSet.GetPoint(k));
 						pointCntr++;
 					}
 				}
@@ -71,9 +72,9 @@ public class K_Means_Original implements I_Algorithm {
 	}
 
 	@Override
-	public void set(DataSet set, int numClusters, UserGUI ugui) {
+	public void Set(DataSet set, int numClusters, UserGUI ugui) {
 		
-		if(set.getDataSetSize() < numClusters)
+		if(set.GetDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
 			dataSet = null;
@@ -86,12 +87,12 @@ public class K_Means_Original implements I_Algorithm {
 	}
 
 	@Override
-	public boolean isRunning() {
+	public boolean IsRunning() {
 		return isRunning;
 	}
 
 	@Override
-	public DataSet currentSolution() {
+	public ArrayList<Cluster> currentSolution() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -104,9 +105,9 @@ public class K_Means_Original implements I_Algorithm {
 	
 	private void AssignPoints()
 	{
-		for(int i =0; i< dataSet.getDataSetSize();i++)
+		for(int i =0; i< dataSet.GetDataSetSize();i++)
 		{
-			DataPoint p = dataSet.getPoint(i);
+			DataPoint p = dataSet.GetPoint(i);
 			int center = 0;
 			Double distance = getDistance(this.currentCentroids.get(0), p);
 			for(int j=1;j<this.currentCentroids.size();j++)
@@ -135,9 +136,9 @@ public class K_Means_Original implements I_Algorithm {
 		ArrayList<DataPoint>[] sorted = new ArrayList[this.clusters];
 		for(int i=0;i<this.clusters;i++)
 			sorted[i]=new ArrayList<DataPoint>();
-		for(int i=0;i<dataSet.getDataSetSize();i++)
+		for(int i=0;i<dataSet.GetDataSetSize();i++)
 		{
-			sorted[dataSet.getPoint(i).getClusterNumber()].add(dataSet.getPoint(i));
+			sorted[dataSet.GetPoint(i).getClusterNumber()].add(dataSet.GetPoint(i));
 		}
 		
 		for(int i=0;i<this.clusters;i++)
@@ -186,10 +187,10 @@ public class K_Means_Original implements I_Algorithm {
 			
 			while(!validIndex)
 			{
-				double temp = Math.random() * dataSet.getDataSetSize() - 1;
+				double temp = Math.random() * dataSet.GetDataSetSize() - 1;
 				int index = (int)Math.floor(temp);
 				DataPoint tempPoint;
-				tempPoint =dataSet.getPoint(index);
+				tempPoint =dataSet.GetPoint(index);
 				
 				if(!currentCentroids.contains(tempPoint))
 				{
