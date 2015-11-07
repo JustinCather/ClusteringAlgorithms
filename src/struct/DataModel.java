@@ -33,11 +33,13 @@ public class DataModel
 	private ArrayList<String> attributes;
 	private SplitMethod splitMethod;
 	private double percent;
+	private String excelPath;
 	
-	public DataModel()
+	public DataModel(String excelPath)
 	{
-		this.trainingSet = new DataSet();
-		this.testingSet = new DataSet();
+		this.excelPath = excelPath;
+		this.trainingSet = null;
+		this.testingSet = null;
 		this.attributes = new ArrayList<String>();
 		this.splitMethod = SplitMethod.DataPercent;
 		this.percent = .5;
@@ -62,37 +64,84 @@ public class DataModel
 	/** Gets the attributes associated with the data points.
 	 * @return An ArrayList of attribute names.
 	 */
-	public ArrayList<String> getAttributes()
+	public ArrayList<String> GetAttributes()
 	{
 		return attributes;
 	}
 	
-	/** Generates an initial datamodel with a training set and testing set from an Excel .xls document.
-	 * @param path The path to the Excel .xls file.
-	 * @param sm Use DataModel.SplitMethod enum.
-	 * @param percent The percent of the datapoints that the training set should receive. This will not always be exact depending
-	 * on which splitting method is being used.
-	 * @return The generated DataModel object.
+	/** Gets the actual data from the excel document.
+	 * @param useAttributes
+	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
+	 * @param percent The percent of the data that the training set should receive.
 	 * @throws BiffException
 	 * @throws IOException
 	 */
-	public static DataModel CreateFromExcel(String path, SplitMethod sm, int percent) throws BiffException, IOException
+	public void GetDataFromExcel(ArrayList<String> useAttributes, SplitMethod sm, int percent) throws BiffException, IOException
+	{
+		if (useAttributes != null)
+		{
+			LinkedList<DataPoint> tempPoints = new LinkedList<DataPoint>();
+			this.splitMethod = sm;
+			this.SetPercent(percent);
+			this.trainingSet = new DataSet();
+			this.testingSet = new DataSet();
+			
+			// Hopefully user never got the attributes from the excel file.
+			if (this.GetAttributes().size() < 1)
+				this.GetAttributesFromExcel();
+			
+			Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
+			Sheet sheet = workbook.getSheet(0);
+			int row = sheet.getRows();
+			int col = sheet.getColumns();
+			
+			// Getting the data from the file.
+			for(int r = 1; r < row;r++)
+			{
+				DataPoint p = new DataPoint();
+				for(int c = 0; c < col; c++)
+				{
+					// only add the attribute if it is one of the requested attributes.
+					if (useAttributes.contains(this.attributes.get(c))) 
+					{
+						if (c != col - 1)
+							p.addAttribute(this.attributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
+						else
+							p.setType(sheet.getCell(c, r).getContents());
+					}
+				}
+				
+				// Add the point to temporary linked list.		
+				tempPoints.add(p);
+			}
+			
+			this.DistributeDataPoint(tempPoints);
+			tempPoints = null;	
+		}
+	}
+	
+	/** Gets the actual data from the excel document.
+	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
+	 * @param percent The percent of the data that the training set should receive.
+	 * @throws BiffException
+	 * @throws IOException
+	 */
+	public void GetDataFromExcel(SplitMethod sm, int percent) throws BiffException, IOException
 	{
 		LinkedList<DataPoint> tempPoints = new LinkedList<DataPoint>();
-		DataModel temp = new DataModel();
-		temp.splitMethod = sm;
-		temp.SetPercent(percent);
+		this.splitMethod = sm;
+		this.SetPercent(percent);
+		this.trainingSet = new DataSet();
+		this.testingSet = new DataSet();
 		
-		Workbook workbook = Workbook.getWorkbook(new File(path));
+		// Hopefully user never got the attributes from the excel file.
+		if (this.GetAttributes().size() < 1)
+			this.GetAttributesFromExcel();
+		
+		Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
 		Sheet sheet = workbook.getSheet(0);
 		int row = sheet.getRows();
 		int col = sheet.getColumns();
-		
-		// Getting attributes from file.
-		for (int i = 0; i < col - 1; i++)
-		{
-			temp.attributes.add(sheet.getCell(i, 0).getContents());
-		}
 		
 		// Getting the data from the file.
 		for(int r = 1; r < row;r++)
@@ -101,7 +150,7 @@ public class DataModel
 			for(int c = 0; c < col; c++)
 			{
 				if(c != col - 1)
-					p.addAttribute(temp.attributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
+					p.addAttribute(this.attributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
 				else
 					p.setType(sheet.getCell(c,r).getContents());
 			}
@@ -110,10 +159,26 @@ public class DataModel
 			tempPoints.add(p);
 		}
 		
-		temp.DistributeDataPoint(tempPoints);
+		this.DistributeDataPoint(tempPoints);
 		tempPoints = null;
+	}
+	
+	/** Gets the attributes for the classes from the defined excel file.
+	 * @throws BiffException
+	 * @throws IOException
+	 */
+	public void GetAttributesFromExcel() throws BiffException, IOException
+	{
+		Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
+		Sheet sheet = workbook.getSheet(0);
+		int row = sheet.getRows();
+		int col = sheet.getColumns();
 		
-		return temp;
+		// Getting attributes from file.
+		for (int i = 0; i < col - 1; i++)
+		{
+			this.attributes.add(sheet.getCell(i, 0).getContents());
+		}
 	}
 	
 	/** Sets the split percent.
@@ -131,7 +196,6 @@ public class DataModel
 			this.percent = .5;
 		}
 	}
-	
 	
 	/** Distributes a linked list of datapoints into the training set and test set
 	 * depending on the values that splitMethod and percent are set to.
@@ -270,7 +334,10 @@ public class DataModel
 		//String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
 		String path = System.getProperty("user.dir")+ "\\data\\LettersDataSet_LessIsMore.xls";
 				
-		DataModel test = DataModel.CreateFromExcel(path, SplitMethod.RandomPercent, 99);
+		//DataModel test = DataModel.CreateFromExcel(path, SplitMethod.RandomPercent, 99);
+		DataModel test = new DataModel(path);
+		test.GetAttributesFromExcel();
+		test.GetDataFromExcel(SplitMethod.ClassPercent, 75);
 		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
 		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
 	}

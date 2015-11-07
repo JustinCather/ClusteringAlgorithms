@@ -15,6 +15,7 @@ public class Cluster
 	private LinkedList<DataPoint> dataPoints;
 	private DataPoint centroid;
 	private int clusterID;
+	private String clusterType;
 	
 	public Cluster(int clusterID)
 	{
@@ -23,12 +24,63 @@ public class Cluster
 		this.centroid = null;
 	}
 	
+	/** Gets the class type of the class with the most instances in this cluster.
+	 * @return The cluster type.
+	 */
+	public String GetClusterType() 
+	{
+		return clusterType;
+	}
+
+	/**
+	 * Counts the number of instances of each class in this cluster
+	 * and sets the cluster type to the class that has the most instances.
+	 */
+	public void SetClusterType() 
+	{
+		int highNumber;
+		String tempType;
+		HashMap<String, Integer> counts = new HashMap<String, Integer>();	
+		
+		for (int i = 0; i < dataPoints.size(); i++)
+		{
+			try 
+			{
+				String type = dataPoints.get(i).getType();
+				counts.put(type, counts.get(type) + 1);
+			} 
+			catch (Exception e) {
+				String type = dataPoints.get(i).getType();
+				counts.put(type, 1);
+			}
+		}
+		
+		tempType = dataPoints.get(0).getType();
+		highNumber = counts.get(tempType);
+		
+		for (Entry<String, Integer> entry : counts.entrySet())
+		{
+			if (entry.getValue() > highNumber)
+			{
+				highNumber = entry.getValue();
+				tempType = entry.getKey();
+			}
+		}
+		
+		this.clusterType = tempType;
+	}
+
 	/** This needs to be set to same values from the DataSet
 	 * @param names The attribute names to use. 
 	 */
 	public static void SetAttributeNames(ArrayList<String> names)
 	{
 		Cluster.ATTRIBUTE_NAMES = names;
+	}
+	
+	public static ArrayList<String> GetAtributeNames()
+	{
+		return Cluster.ATTRIBUTE_NAMES;
 	}
 	
 	/** Gets the data points currently associated with this cluster.
@@ -202,8 +254,10 @@ public class Cluster
 	public static void main(String[] args) throws BiffException, IOException
 	{
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
-		DataModel winning = DataModel.CreateFromExcel(path, SplitMethod.ClassPercent, 75);
-		Cluster.SetAttributeNames(winning.getAttributes());
+		DataModel winning = new DataModel(path);
+		winning.GetAttributesFromExcel();
+		winning.GetDataFromExcel(SplitMethod.ClassPercent, 75);
+		Cluster.SetAttributeNames(winning.GetAttributes());
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		int clusterCount = 0;
 		Cluster temp = new Cluster(clusterCount);

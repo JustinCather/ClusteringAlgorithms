@@ -29,7 +29,7 @@ public interface I_Algorithm {
 	/** Gets the current clusters of the solution.
 	 * @return An ArrayList of clusters.
 	 */
-	ArrayList<Cluster> currentSolution();
+	ArrayList<Cluster> CurrentSolution();
 	
 	/**
 	 * Checks if the algorithm has reached its stoping condition.

@@ -92,7 +92,7 @@ public class K_Means_Original implements I_Algorithm {
 	}
 
 	@Override
-	public ArrayList<Cluster> currentSolution() {
+	public ArrayList<Cluster> CurrentSolution() {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -147,18 +147,18 @@ public class K_Means_Original implements I_Algorithm {
 			HashMap<String,Double> sums = new HashMap<String,Double>();
 			for(int j=0;j<sorted[i].size();j++)
 			{
-				for(int k =0; k< this.dataSet.getAttributes().size();k++)
+				for(int k =0; k< this.dataSet.GetAttributes().size();k++)
 				{
-					if(!sums.containsKey(this.dataSet.getAttributes().get(k)))
-						sums.put(this.dataSet.getAttributes().get(k), 0.0);
-					sums.put(this.dataSet.getAttributes().get(k), sums.get(this.dataSet.getAttributes().get(k))+sorted[i].get(j).getAttribute(this.dataSet.getAttributes().get(k)));
+					if(!sums.containsKey(this.dataSet.GetAttributes().get(k)))
+						sums.put(this.dataSet.GetAttributes().get(k), 0.0);
+					sums.put(this.dataSet.GetAttributes().get(k), sums.get(this.dataSet.GetAttributes().get(k))+sorted[i].get(j).getAttribute(this.dataSet.GetAttributes().get(k)));
 							
 				}
 			}
 			
 			for(int j = 0; j<sums.size(); j++)
 			{
-				p.addAttribute(this.dataSet.getAttributes().get(j), sums.get(this.dataSet.getAttributes().get(j))/sorted[i].size());
+				p.addAttribute(this.dataSet.GetAttributes().get(j), sums.get(this.dataSet.GetAttributes().get(j))/sorted[i].size());
 			}
 			this.currentCentroids.add(p);
 			
@@ -168,10 +168,10 @@ public class K_Means_Original implements I_Algorithm {
 	private double getDistance(DataPoint one, DataPoint two)
 	{
 		double summation =0;
-		for(int i=0;i<dataSet.getAttributes().size();i++)
+		for(int i=0;i<dataSet.GetAttributes().size();i++)
 		{
-			double pointOneVal = one.getAttribute(dataSet.getAttributes().get(i));
-			double pointTwoVal = two.getAttribute(dataSet.getAttributes().get(i));
+			double pointOneVal = one.getAttribute(dataSet.GetAttributes().get(i));
+			double pointTwoVal = two.getAttribute(dataSet.GetAttributes().get(i));
 			summation += Math.pow((pointOneVal-pointTwoVal),2);
 		}
 		summation = Math.sqrt(summation);

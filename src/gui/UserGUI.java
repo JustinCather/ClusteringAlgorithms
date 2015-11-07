@@ -1,26 +1,66 @@
 package gui;
 
+import java.awt.Color;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.text.NumberFormat;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
+import javax.swing.JFormattedTextField;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JProgressBar;
-import javax.swing.JTextPane;
+import javax.swing.JList;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
+import javax.swing.border.BevelBorder;
+import javax.swing.border.TitledBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.NumberFormatter;
 
+import algorithms.Algorithm;
+import algorithms.Hierarchical;
+import algorithms.I_Algorithm;
+import algorithms.K_Means;
+import jxl.read.biff.BiffException;
+import plotting.ScatterPlotEmbedded;
+import struct.Cluster;
+import struct.DataModel;
+import struct.DataModel.SplitMethod;
 import struct.DataSet;
 
 public class UserGUI {
+	
+	private I_Algorithm algorithm;
+	private DataModel dataModel;
+	private ScatterPlotEmbedded plot;
 
-	private static final String DATA_PATH = System.getProperty("user.dir") + "\\data\\";
-	private String[] dataList;
-	private DataSet dataSet;
-	
-	private JFrame frmClusteringAlgorithm;
-	
+	private JPanel graphPanel;
+	private JLabel lblStatus;
+	private JComboBox<Algorithm> algorithmComboBox;
+	private JComboBox<SplitMethod> dataSplitMethod;
+	private JFormattedTextField clusterField;
+	private JFormattedTextField trainingPercentField;
+	private JFrame frmClusteringAlgorithms;
+	private JTextField txtPathOfDataset;
+	private JList<String> attributeList;
+	private DefaultListModel<String> attr;
 
 	/**
 	 * Launch the application.
@@ -29,82 +69,361 @@ public class UserGUI {
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 					UserGUI window = new UserGUI();
-					window.frmClusteringAlgorithm.setVisible(true);
+					window.frmClusteringAlgorithms.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
 	}
+	
+	public void CurrentSolution(Iterator<Cluster> clusters)
+	{
+		this.dataModel.GetTrainingSet().SetIsPlotting(true);
+		this.graphPanel.removeAll();
+		this.graphPanel.add(this.plot.DrawChart(clusters));		
+		this.dataModel.GetTrainingSet().SetIsPlotting(false);
+	}
 
 	/**
 	 * Create the application.
 	 */
 	public UserGUI() {
-		fillDataBox();
 		initialize();
 	}
-	
-	public void currentSolution(DataSet set)
-	{
-		dataSet = set;
-	}
-	
-	// Scans the DATA_PATH directory for excel data files
-		private void fillDataBox(){
-			File f = new File(DATA_PATH);
-			dataList = f.list();
-		}
-	
+
 	/**
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		frmClusteringAlgorithm = new JFrame();
-		frmClusteringAlgorithm.setTitle("Clustering Algorithm");
-		frmClusteringAlgorithm.setResizable(false);
-		frmClusteringAlgorithm.setBounds(100, 100, 314, 385);
-		frmClusteringAlgorithm.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frmClusteringAlgorithm.getContentPane().setLayout(null);
+		attr = new DefaultListModel<String>();
+		plot = new ScatterPlotEmbedded();
 		
-		JComboBox algorithmComboBox = new JComboBox();
-		algorithmComboBox.setModel(new DefaultComboBoxModel(new String[] {"K-Means"}));
-		algorithmComboBox.setBounds(10, 26, 115, 20);
-		frmClusteringAlgorithm.getContentPane().add(algorithmComboBox);
+		// for input of percents
+		NumberFormatter percentFormatter = new NumberFormatter(NumberFormat.getIntegerInstance());
+		percentFormatter.setValueClass(Integer.class);
+		percentFormatter.setAllowsInvalid(false);
+		percentFormatter.setMinimum(1);
+		percentFormatter.setMaximum(99);
 		
-		JLabel algorithmLabel = new JLabel("Clustering Algorithm");
-		algorithmLabel.setLabelFor(algorithmComboBox);
-		algorithmLabel.setBounds(10, 11, 97, 14);
-		frmClusteringAlgorithm.getContentPane().add(algorithmLabel);
+		// for cluster number input
+		NumberFormatter clusterFormatter = new NumberFormatter(NumberFormat.getIntegerInstance());
+		clusterFormatter.setValueClass(Integer.class);
+		clusterFormatter.setAllowsInvalid(false);
+		clusterFormatter.setMinimum(1);
+		clusterFormatter.setMaximum(Integer.MAX_VALUE);
 		
-		JButton btnRun = new JButton("Run");
-		btnRun.setBounds(10, 315, 89, 23);
-		frmClusteringAlgorithm.getContentPane().add(btnRun);
+		frmClusteringAlgorithms = new JFrame();
+		frmClusteringAlgorithms.setTitle("Clustering Algorithms");
+		frmClusteringAlgorithms.setResizable(false);
+		frmClusteringAlgorithms.setBounds(100, 100, 1070, 554);
+		frmClusteringAlgorithms.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frmClusteringAlgorithms.getContentPane().setLayout(null);
 		
-		JButton btnGraph = new JButton("Graph");
-		btnGraph.setBounds(109, 315, 89, 23);
-		frmClusteringAlgorithm.getContentPane().add(btnGraph);
+		graphPanel = new JPanel();
+		graphPanel.setBorder(new TitledBorder(null, "Live Graph", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		graphPanel.setBounds(549, 11, 505, 503);
+		frmClusteringAlgorithms.getContentPane().add(graphPanel);
 		
-		JButton btnCancel = new JButton("Cancel");
-		btnCancel.setBounds(208, 315, 89, 23);
-		frmClusteringAlgorithm.getContentPane().add(btnCancel);
+		JPanel configPanel = new JPanel();
+		configPanel.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		configPanel.setBounds(10, 11, 529, 450);
+		frmClusteringAlgorithms.getContentPane().add(configPanel);
+		configPanel.setLayout(null);
 		
-		JTextPane output = new JTextPane();
-		output.setBounds(10, 57, 287, 226);
-		frmClusteringAlgorithm.getContentPane().add(output);
+		JPanel dataSetPanel = new JPanel();
+		dataSetPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Dataset", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		dataSetPanel.setBounds(10, 27, 509, 56);
+		configPanel.add(dataSetPanel);
+		dataSetPanel.setLayout(null);
 		
-		JProgressBar progressBar = new JProgressBar();
-		progressBar.setBounds(64, 294, 180, 14);
-		frmClusteringAlgorithm.getContentPane().add(progressBar);
+		JButton btnDataset = new JButton("Select Dataset");
+		btnDataset.setBounds(10, 21, 124, 23);
+		dataSetPanel.add(btnDataset);
 		
-		JComboBox dataComboBox = new JComboBox<String>(dataList);
-		dataComboBox.setBounds(182, 26, 115, 20);
-		frmClusteringAlgorithm.getContentPane().add(dataComboBox);
+		txtPathOfDataset = new JTextField();
+		txtPathOfDataset.setEditable(false);
+		txtPathOfDataset.setBounds(144, 22, 355, 20);
+		dataSetPanel.add(txtPathOfDataset);
+		txtPathOfDataset.setColumns(10);
 		
-		JLabel lblDataFile = new JLabel("Data File");
-		lblDataFile.setLabelFor(dataComboBox);
-		lblDataFile.setBounds(182, 11, 46, 14);
-		frmClusteringAlgorithm.getContentPane().add(lblDataFile);
+		JPanel optionsPanel = new JPanel();
+		optionsPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Options", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		optionsPanel.setBounds(10, 94, 255, 345);
+		configPanel.add(optionsPanel);
+		optionsPanel.setLayout(null);
+		
+		JLabel lblAlgorithm = new JLabel("Algorithm");
+		lblAlgorithm.setBounds(44, 25, 45, 14);
+		optionsPanel.add(lblAlgorithm);
+		
+		algorithmComboBox = new JComboBox<Algorithm>();
+		algorithmComboBox.setModel(new DefaultComboBoxModel<Algorithm>(Algorithm.values()));
+		lblAlgorithm.setLabelFor(algorithmComboBox);
+		algorithmComboBox.setBounds(10, 42, 112, 20);
+		optionsPanel.add(algorithmComboBox);
+		
+		JLabel lblClusters = new JLabel("Number of Clusters");
+		lblClusters.setBounds(140, 25, 97, 14);
+		optionsPanel.add(lblClusters);
+		
+		JLabel lblTrainingPercent = new JLabel("Training Percent");
+		lblTrainingPercent.setBounds(27, 85, 78, 14);
+		optionsPanel.add(lblTrainingPercent);
+		
+		JLabel lblTestingPercent = new JLabel("Testing Percent");
+		lblTestingPercent.setBounds(149, 85, 78, 14);
+		optionsPanel.add(lblTestingPercent);
+		
+		JLabel lblDataSplitMethod = new JLabel("Data Split Method");
+		lblDataSplitMethod.setBounds(24, 134, 85, 14);
+		optionsPanel.add(lblDataSplitMethod);
+		
+		dataSplitMethod = new JComboBox<SplitMethod>();
+		dataSplitMethod.setModel(new DefaultComboBoxModel<SplitMethod>(SplitMethod.values()));
+		dataSplitMethod.setBounds(10, 151, 112, 20);
+		optionsPanel.add(dataSplitMethod);
+		
+		trainingPercentField = new JFormattedTextField(percentFormatter);
+		trainingPercentField.getDocument().putProperty("number", "Text Area");
+		trainingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
+		trainingPercentField.setValue(75);
+		trainingPercentField.setBounds(10, 103, 112, 20);
+		optionsPanel.add(trainingPercentField);
+		
+		JFormattedTextField testingPercentField = new JFormattedTextField(percentFormatter);
+		testingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
+		testingPercentField.setValue(25);
+		testingPercentField.setEditable(false);
+		testingPercentField.setBounds(132, 103, 112, 20);
+		optionsPanel.add(testingPercentField);
+		
+		clusterField = new JFormattedTextField(clusterFormatter);
+		clusterField.setHorizontalAlignment(SwingConstants.CENTER);
+		clusterField.setBounds(132, 42, 112, 20);
+		clusterField.setValue(3);
+		optionsPanel.add(clusterField);
+		
+		JPanel attributesPanel = new JPanel();
+		attributesPanel.setBorder(new TitledBorder(null, "Attributes", TitledBorder.CENTER, TitledBorder.TOP, null, null));
+		attributesPanel.setBounds(275, 94, 244, 345);
+		configPanel.add(attributesPanel);
+		attributesPanel.setLayout(null);
+		
+		JButton btnAll = new JButton("All");
+		btnAll.setBounds(129, 21, 75, 23);
+		attributesPanel.add(btnAll);
+		
+		JButton btnNone = new JButton("None");
+		btnNone.setBounds(39, 21, 75, 23);
+		attributesPanel.add(btnNone);
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(10, 55, 224, 279);
+		attributesPanel.add(scrollPane);
+		
+		attributeList = new JList<String>(attr);
+		scrollPane.setViewportView(attributeList);
+		attributeList.setBackground(SystemColor.menu);
+		attributeList.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		attributeList.setVisibleRowCount(20);
+		
+		JPanel controlPanel = new JPanel();
+		controlPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		controlPanel.setBounds(10, 461, 398, 53);
+		frmClusteringAlgorithms.getContentPane().add(controlPanel);
+		controlPanel.setLayout(null);
+		
+		JButton btnStart = new JButton("Start");
+		btnStart.setBounds(10, 19, 120, 23);
+		controlPanel.add(btnStart);
+		
+		JButton btnStop = new JButton("Stop");
+		btnStop.setBounds(140, 19, 120, 23);
+		controlPanel.add(btnStop);
+		
+		JButton btnGraphWindow = new JButton("Graph Window");
+		btnGraphWindow.setBounds(270, 19, 120, 23);
+		controlPanel.add(btnGraphWindow);
+		
+		JPanel statusPanel = new JPanel();
+		statusPanel.setBorder(new TitledBorder(null, "Status", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		statusPanel.setBounds(418, 461, 121, 53);
+		frmClusteringAlgorithms.getContentPane().add(statusPanel);
+		statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
+		lblStatus = new JLabel("STATUS");
+		lblStatus.setFont(new Font("Tahoma", Font.PLAIN, 18));
+		statusPanel.add(lblStatus);
+		
+		//////////////////////////////////////////////////////////////////////////
+		////////////////////////////////EVENTS////////////////////////////////////
+		//////////////////////////////////////////////////////////////////////////
+		
+		// Start button clicked
+		btnStart.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+				RunModel();
+			}
+		});
+		
+		// Select data set button.
+		btnDataset.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fileChooser = new JFileChooser();
+				File selectedFile = null;
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+				
+				int result = fileChooser.showOpenDialog(null);
+				
+				if (result == JFileChooser.APPROVE_OPTION)
+				{
+					selectedFile = fileChooser.getSelectedFile();
+					txtPathOfDataset.setText(selectedFile.getAbsolutePath());
+					LoadDataModel();
+					PopulateAttributeBox();
+				}
+			}
+		});
+		
+		// Select all attributes.
+		btnAll.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				int[] indices = new int[attr.getSize()];
+				for (int i = 0; i < indices.length; i++)
+				{
+					indices[i] = i;
+				}
+				
+				attributeList.setSelectedIndices(indices);
+			}
+		});
+		
+		// Deselect all attributes.
+		btnNone.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) 
+			{
+				attributeList.clearSelection();
+			}
+		});
+		
+		// Update the testing set when the training set percent changes.
+		trainingPercentField.getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			public void UpdateTestingSet()
+			{
+				int val = (int)trainingPercentField.getValue();
+				val = 100 - val;			
+				testingPercentField.setValue(val);
+			}
+		});
+	}
+	
+	private void RunModel()
+	{
+		System.gc();
+		
+		if (this.dataModel != null) 
+		{
+			List<String> attributes = this.attributeList.getSelectedValuesList();
+			int trainingPercent = (int) this.trainingPercentField.getValue();
+			int numberOfClusters = (int) this.clusterField.getValue();
+			SplitMethod splitMethod = this.dataSplitMethod.getItemAt(this.dataSplitMethod.getSelectedIndex());
+			Algorithm algorithmType = this.algorithmComboBox.getItemAt(this.algorithmComboBox.getSelectedIndex());
+			
+			try 
+			{
+				this.lblStatus.setText("Running");
+				this.dataModel.GetDataFromExcel(splitMethod, trainingPercent);
+				
+				if (attributes.size() > 0) 
+				{
+					this.plot.SetXY(attributes.get(0), attributes.get(1));
+								
+					switch (algorithmType) 
+					{
+						case FuzzyLogic:
+							MessageBox.show("Not Implemented.", "Not Implemented");
+							break;
+	
+						case Hierarchical:
+							this.algorithm = new Hierarchical();
+							break;
+	
+						case K_Means:
+							this.algorithm = new K_Means();
+							break;
+	
+						default:
+							break;
+					}
+					
+					
+					this.algorithm.Set(this.dataModel.GetTrainingSet(), numberOfClusters, this);
+					this.algorithm.Start();
+					
+					this.lblStatus.setText("Ready");
+				} 
+				else 
+				{
+					MessageBox.show("You need to select at least one attribute.", "No attributes selected.");
+				} 
+			}
+			catch (Exception e) 
+			{
+				MessageBox.show("Error: " + e.getMessage(), "ERROR");
+			}
+		}
+		else
+		{
+			MessageBox.show("You need to select a data set first.", "No data set selected.");
+		}
+	}
+	
+	private void LoadDataModel()
+	{
+		try 
+		{
+			this.dataModel = new DataModel(txtPathOfDataset.getText());
+			this.dataModel.GetAttributesFromExcel();
+			Cluster.SetAttributeNames(dataModel.GetAttributes());
+		} 
+		catch (BiffException | IOException e) {
+			MessageBox.show("Tried to get attributes from excel file, but an error occured. \n" + e.getMessage(), "Error Reading Excel File");
+			this.dataModel = null;
+			e.printStackTrace();
+		}
+	}
+	
+	private void PopulateAttributeBox()
+	{
+		if (this.dataModel != null)
+		{
+			this.attr.clear();
+			
+			for (String s : this.dataModel.GetAttributes())
+			{
+				this.attr.addElement(s);
+			}
+		}
 	}
 }

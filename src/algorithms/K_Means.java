@@ -6,8 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+import org.jfree.data.xy.XYDataset;
+
 import gui.UserGUI;
 import jxl.read.biff.BiffException;
+import plotting.ScatterPlotEmbedded;
+import plotting.ScatterPlotWindow;
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
@@ -48,10 +52,10 @@ public class K_Means implements I_Algorithm {
 				RecalcCentroids();
 				CheckStoppingCondition();			
 				
-				if(i % 10 == 0)
+				if(i % 5 == 0)
 				{
 					//dataSet.setIsPlotting(true);
-					userGUI.currentSolution(dataSet);
+					userGUI.CurrentSolution(this.clusters.iterator());
 					
 					System.out.println(i + "th iteration...");
 					for (int x = 0; x < clusters.size(); x++)
@@ -67,9 +71,12 @@ public class K_Means implements I_Algorithm {
 				i++;			
 			}
 			
+			userGUI.CurrentSolution(this.clusters.iterator());
+			
 			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)
 			{
+				clusters.get(x).SetClusterType();
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
 			}
@@ -97,7 +104,7 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public ArrayList<Cluster> currentSolution() {
+	public ArrayList<Cluster> CurrentSolution() {
 		return this.clusters;
 	}
 
@@ -207,13 +214,21 @@ public class K_Means implements I_Algorithm {
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
 		int clusters = 3;
 		
-		DataModel winning = DataModel.CreateFromExcel(path, SplitMethod.ClassPercent, 75);
-		Cluster.SetAttributeNames(winning.getAttributes());
+		DataModel winning = new DataModel(path);
+		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
+		Cluster.SetAttributeNames(winning.GetAttributes());
 		I_Algorithm k = new K_Means();
 		
 		k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
 		k.Start();
+		
+		String x = winning.GetAttributes().get(0);
+		String y = winning.GetAttributes().get(1);
+		ScatterPlotWindow plot = new ScatterPlotWindow("Plot");
+		plot.SetXY(x, y);
+		plot.DrawChart(k.CurrentSolution());
+		plot.pack();
+		plot.setVisible(true);
 
 	}
-
 }
