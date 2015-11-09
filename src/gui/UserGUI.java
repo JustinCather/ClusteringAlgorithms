@@ -94,6 +94,7 @@ public class UserGUI {
 		this.plot.SetXY(this.xComboBox.getItemAt(this.xComboBox.getSelectedIndex()), this.yComboBox.getItemAt(this.yComboBox.getSelectedIndex()) );
 		this.graphPanel.removeAll();
 		this.graphPanel.add(this.plot.DrawChart(clusters));		
+		this.graphPanel.revalidate();
 		
 		// Update output
 		for (Cluster c : clusters)
@@ -493,8 +494,9 @@ public class UserGUI {
 	private void RefreshPlot()
 	{
 		this.plot.SetXY(this.xComboBox.getItemAt(this.xComboBox.getSelectedIndex()), this.yComboBox.getItemAt(this.yComboBox.getSelectedIndex()) );
-		this.graphPanel.removeAll();
+		this.graphPanel.removeAll();	
 		this.graphPanel.add(this.plot.DrawChart(this.algorithm.CurrentSolution()));	
+		this.graphPanel.revalidate();
 	}
 	
 	private void LoadDataModel()
