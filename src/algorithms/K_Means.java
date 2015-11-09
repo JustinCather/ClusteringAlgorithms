@@ -55,7 +55,7 @@ public class K_Means implements I_Algorithm {
 				if(i % 5 == 0)
 				{
 					//dataSet.setIsPlotting(true);
-					userGUI.CurrentSolution(this.clusters.iterator());
+					userGUI.CurrentSolution(this.clusters);
 					
 					System.out.println(i + "th iteration...");
 					for (int x = 0; x < clusters.size(); x++)
@@ -71,7 +71,7 @@ public class K_Means implements I_Algorithm {
 				i++;			
 			}
 			
-			userGUI.CurrentSolution(this.clusters.iterator());
+			userGUI.CurrentSolution(this.clusters);
 			
 			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)

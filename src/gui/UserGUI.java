@@ -44,6 +44,9 @@ import struct.Cluster;
 import struct.DataModel;
 import struct.DataModel.SplitMethod;
 import struct.DataSet;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.JTextArea;
 
 public class UserGUI {
 	
@@ -51,6 +54,9 @@ public class UserGUI {
 	private DataModel dataModel;
 	private ScatterPlotEmbedded plot;
 
+	private JTextArea resultsTextPane;
+	private JComboBox<String> xComboBox;
+	private JComboBox<String> yComboBox;
 	private JPanel graphPanel;
 	private JLabel lblStatus;
 	private JComboBox<Algorithm> algorithmComboBox;
@@ -79,11 +85,24 @@ public class UserGUI {
 		});
 	}
 	
-	public void CurrentSolution(Iterator<Cluster> clusters)
+	public void CurrentSolution(ArrayList<Cluster> clusters)
 	{
-		this.dataModel.GetTrainingSet().SetIsPlotting(true);
+		int clusterNum = 1;
+		
+		this.dataModel.GetTrainingSet().SetIsPlotting(true);	
+		// Update graph.
+		this.plot.SetXY(this.xComboBox.getItemAt(this.xComboBox.getSelectedIndex()), this.yComboBox.getItemAt(this.yComboBox.getSelectedIndex()) );
 		this.graphPanel.removeAll();
 		this.graphPanel.add(this.plot.DrawChart(clusters));		
+		
+		// Update output
+		for (Cluster c : clusters)
+		{
+			this.resultsTextPane.append("Cluster " + clusterNum + "\n" + c.ClusterStats());
+			clusterNum++;
+		}
+		this.resultsTextPane.append("______________________________________\n");
+		
 		this.dataModel.GetTrainingSet().SetIsPlotting(false);
 	}
 
@@ -124,7 +143,7 @@ public class UserGUI {
 		
 		graphPanel = new JPanel();
 		graphPanel.setBorder(new TitledBorder(null, "Live Graph", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		graphPanel.setBounds(549, 11, 505, 503);
+		graphPanel.setBounds(549, 127, 505, 334);
 		frmClusteringAlgorithms.getContentPane().add(graphPanel);
 		
 		JPanel configPanel = new JPanel();
@@ -258,6 +277,48 @@ public class UserGUI {
 		lblStatus.setFont(new Font("Tahoma", Font.PLAIN, 18));
 		statusPanel.add(lblStatus);
 		
+		JPanel graphPropertiesPanel = new JPanel();
+		graphPropertiesPanel.setBorder(new TitledBorder(null, "Graph Properties", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		graphPropertiesPanel.setBounds(549, 461, 505, 53);
+		frmClusteringAlgorithms.getContentPane().add(graphPropertiesPanel);
+		graphPropertiesPanel.setLayout(null);
+		
+		xComboBox = new JComboBox<String>();
+		xComboBox.setBounds(54, 22, 124, 20);
+		graphPropertiesPanel.add(xComboBox);
+		
+		JLabel lblXValue = new JLabel("X Value:");
+		lblXValue.setLabelFor(xComboBox);
+		lblXValue.setBounds(10, 25, 46, 14);
+		graphPropertiesPanel.add(lblXValue);
+		
+		JLabel lblYValue = new JLabel("Y Value:");
+		lblYValue.setBounds(188, 25, 46, 14);
+		graphPropertiesPanel.add(lblYValue);
+		
+		yComboBox = new JComboBox<String>();
+		lblYValue.setLabelFor(yComboBox);
+		yComboBox.setBounds(234, 22, 124, 20);
+		graphPropertiesPanel.add(yComboBox);
+		
+		JButton btnRefresh = new JButton("Refresh");
+		btnRefresh.setBounds(406, 21, 89, 23);
+		graphPropertiesPanel.add(btnRefresh);
+		
+		JPanel resultsPanel = new JPanel();
+		resultsPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		resultsPanel.setBounds(549, 11, 505, 105);
+		frmClusteringAlgorithms.getContentPane().add(resultsPanel);
+		resultsPanel.setLayout(null);
+		
+		JScrollPane scrollPane_1 = new JScrollPane();
+		scrollPane_1.setBounds(10, 15, 485, 79);
+		resultsPanel.add(scrollPane_1);
+		
+		resultsTextPane = new JTextArea();
+		scrollPane_1.setViewportView(resultsTextPane);
+		resultsTextPane.setBackground(SystemColor.control);
+		
 		//////////////////////////////////////////////////////////////////////////
 		////////////////////////////////EVENTS////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////
@@ -336,6 +397,36 @@ public class UserGUI {
 				testingPercentField.setValue(val);
 			}
 		});
+		
+		// Attribute selection changed.
+		attributeList.addListSelectionListener(new ListSelectionListener() {
+			public void valueChanged(ListSelectionEvent arg0) 
+			{
+				List<String> temp  = attributeList.getSelectedValuesList();
+				xComboBox.removeAllItems();
+				yComboBox.removeAllItems();
+				
+				for (String s : temp)
+				{
+					xComboBox.addItem(s);
+					yComboBox.addItem(s);
+				}
+				
+				if (yComboBox.getItemCount() > 1)
+				{
+					yComboBox.setSelectedIndex(1);
+				}
+
+			}
+		});
+		
+		// Plot button refresh.
+		btnRefresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				RefreshPlot();
+			}
+		});
 	}
 	
 	private void RunModel()
@@ -355,7 +446,7 @@ public class UserGUI {
 				this.lblStatus.setText("Running");
 				this.dataModel.GetDataFromExcel(splitMethod, trainingPercent);
 				
-				if (attributes.size() > 0) 
+				if (attributes.size() > 1) 
 				{
 					this.plot.SetXY(attributes.get(0), attributes.get(1));
 								
@@ -397,6 +488,13 @@ public class UserGUI {
 		{
 			MessageBox.show("You need to select a data set first.", "No data set selected.");
 		}
+	}
+	
+	private void RefreshPlot()
+	{
+		this.plot.SetXY(this.xComboBox.getItemAt(this.xComboBox.getSelectedIndex()), this.yComboBox.getItemAt(this.yComboBox.getSelectedIndex()) );
+		this.graphPanel.removeAll();
+		this.graphPanel.add(this.plot.DrawChart(this.algorithm.CurrentSolution()));	
 	}
 	
 	private void LoadDataModel()

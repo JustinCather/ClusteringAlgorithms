@@ -60,14 +60,14 @@ public class Hierarchical implements I_Algorithm
 				// On every 10th iteration allow the gui to update.
 				if (i % 5 == 0)
 				{
-					userGUI.CurrentSolution(this.clusters.iterator());
+					userGUI.CurrentSolution(this.clusters);
 				}
 				
 				while (this.dataSet.GetIsPlotting()){Thread.sleep(500);}				
 				i++;
 			}
 			
-			userGUI.CurrentSolution(this.clusters.iterator());
+			userGUI.CurrentSolution(this.clusters);
 			
 			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)

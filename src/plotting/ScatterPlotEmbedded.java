@@ -45,14 +45,13 @@ public class ScatterPlotEmbedded
 		this.y = y;
 	}
 	
-	public ChartPanel DrawChart(Iterator<Cluster> clusters)
+	public ChartPanel DrawChart(ArrayList<Cluster> clusters)
 	{
 		XYSeriesCollection temp = new XYSeriesCollection();
 		int count = 1;
 		
-		while (clusters.hasNext())
+		for (Cluster c : clusters)
 		{
-			Cluster c = clusters.next();
 			XYSeries series = new XYSeries("Cluster" + count);
 			count++;
 			
@@ -65,7 +64,7 @@ public class ScatterPlotEmbedded
 		}
 	
 		JFreeChart chart = ChartFactory.createScatterPlot(
-	            "Plot",
+	            "Visual Literacy",
 	            this.x, this.y, 
 	            temp, 
 	            PlotOrientation.VERTICAL,
