@@ -120,7 +120,8 @@ public class DataSet
 	/** Gets the number of data points in the data set.
 	 * @return Integer equal to the number of points in the set.
 	 */
-	public int GetDataSetSize(){
+	public int GetDataSetSize()
+	{
 		return points.size();
 	}
 }

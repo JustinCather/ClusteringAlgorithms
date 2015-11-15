@@ -265,7 +265,7 @@ public class Hierarchical implements I_Algorithm
 		Hierarchical h = new Hierarchical();
 		
 		h.Set(winning.GetTrainingSet(), clusters, new UserGUI());			
-		h.Start();		
+		//h.Start();		
 		
 		String x = winning.GetAttributes().get(0);
 		String y = winning.GetAttributes().get(1);

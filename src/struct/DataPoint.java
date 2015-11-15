@@ -52,6 +52,12 @@ public class DataPoint {
 	{
 		point.put(name,attr);
 	}
+	
+	public void changeAttributeValue(String name, double newVal)
+	{
+		this.point.put(name, newVal);
+	}
+	
 	public void setType(String s)
 	{
 		type=s;

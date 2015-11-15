@@ -69,6 +69,44 @@ public class DataModel
 		return attributes;
 	}
 	
+	/**
+	 * Normalizes all attributes in the training set.
+	 */
+	public void NormalizeTrainingSet()
+	{
+		for (String a : this.GetAttributes())
+		{
+			double min = this.trainingSet.FindMin(a);
+			double max = this.trainingSet.FindMax(a);
+			
+			for (int i = 0; i < this.trainingSet.GetDataSetSize(); i++)
+			{
+				double val = this.trainingSet.GetPoint(i).getAttribute(a);
+				val = this.NormailizeDataPoint(val, min, max);
+				this.trainingSet.GetPoint(i).changeAttributeValue(a, val);
+			}
+		}
+	}
+	
+	/**
+	 * Normalizes all attributes in the testing set.
+	 */
+	public void NormailzeTestingSet()
+	{
+		for (String a : this.GetAttributes())
+		{
+			double min = this.testingSet.FindMin(a);
+			double max = this.testingSet.FindMax(a);
+			
+			for (int i = 0; i < this.testingSet.GetDataSetSize(); i++)
+			{
+				double val = this.testingSet.GetPoint(i).getAttribute(a);
+				val = this.NormailizeDataPoint(val, min, max);
+				this.testingSet.GetPoint(i).changeAttributeValue(a, val);
+			}
+		}
+	}
+	
 	/** Gets the actual data from the excel document.
 	 * @param useAttributes
 	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
@@ -171,7 +209,6 @@ public class DataModel
 	{
 		Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
 		Sheet sheet = workbook.getSheet(0);
-		int row = sheet.getRows();
 		int col = sheet.getColumns();
 		
 		// Getting attributes from file.
@@ -180,6 +217,7 @@ public class DataModel
 			this.attributes.add(sheet.getCell(i, 0).getContents());
 		}
 	}
+	
 	
 	/** Sets the split percent.
 	 * @param percent Integer, 1 - 99.
@@ -327,6 +365,11 @@ public class DataModel
 				this.testingSet.AddPoint(p);
 			} 
 		}
+	}
+	
+	private double NormailizeDataPoint(double value, double min, double max)
+	{
+		return (value - min) / (max - min);
 	}
 	
 	public static void main(String[] args) throws BiffException, IOException

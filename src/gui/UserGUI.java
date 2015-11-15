@@ -49,6 +49,7 @@ import struct.DataSet;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextArea;
+import javax.swing.JCheckBox;
 
 public class UserGUI {
 	
@@ -56,6 +57,7 @@ public class UserGUI {
 	private DataModel dataModel;
 	private ScatterPlotEmbedded plot;
 
+	private JCheckBox chckbxNormalizeData;
 	private JTextArea resultsTextPane;
 	private JComboBox<String> xComboBox;
 	private JComboBox<String> yComboBox;
@@ -157,7 +159,7 @@ public class UserGUI {
 		
 		graphPanel = new JPanel();
 		graphPanel.setBorder(new TitledBorder(null, "Live Graph", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		graphPanel.setBounds(549, 127, 505, 334);
+		graphPanel.setBounds(549, 172, 505, 289);
 		frmClusteringAlgorithms.getContentPane().add(graphPanel);
 		
 		JPanel configPanel = new JPanel();
@@ -239,6 +241,10 @@ public class UserGUI {
 		clusterField.setValue(3);
 		optionsPanel.add(clusterField);
 		
+		chckbxNormalizeData = new JCheckBox("Normalize Data");
+		chckbxNormalizeData.setBounds(132, 150, 112, 23);
+		optionsPanel.add(chckbxNormalizeData);
+		
 		JPanel attributesPanel = new JPanel();
 		attributesPanel.setBorder(new TitledBorder(null, "Attributes", TitledBorder.CENTER, TitledBorder.TOP, null, null));
 		attributesPanel.setBounds(275, 94, 244, 345);
@@ -265,7 +271,7 @@ public class UserGUI {
 		
 		JPanel controlPanel = new JPanel();
 		controlPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		controlPanel.setBounds(10, 461, 398, 53);
+		controlPanel.setBounds(10, 461, 274, 53);
 		frmClusteringAlgorithms.getContentPane().add(controlPanel);
 		controlPanel.setLayout(null);
 		
@@ -282,10 +288,6 @@ public class UserGUI {
 		});
 		btnStop.setBounds(140, 19, 120, 23);
 		controlPanel.add(btnStop);
-		
-		JButton btnGraphWindow = new JButton("Graph Window");
-		btnGraphWindow.setBounds(270, 19, 120, 23);
-		controlPanel.add(btnGraphWindow);
 		
 		JPanel statusPanel = new JPanel();
 		statusPanel.setBorder(new TitledBorder(null, "Status", TitledBorder.LEFT, TitledBorder.TOP, null, null));
@@ -327,12 +329,12 @@ public class UserGUI {
 		
 		JPanel resultsPanel = new JPanel();
 		resultsPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		resultsPanel.setBounds(549, 11, 505, 105);
+		resultsPanel.setBounds(549, 11, 505, 150);
 		frmClusteringAlgorithms.getContentPane().add(resultsPanel);
 		resultsPanel.setLayout(null);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(10, 15, 485, 79);
+		scrollPane_1.setBounds(10, 15, 485, 124);
 		resultsPanel.add(scrollPane_1);
 		
 		resultsTextPane = new JTextArea();
@@ -469,6 +471,12 @@ public class UserGUI {
 			{
 				this.lblStatus.setText("Running");
 				this.dataModel.GetDataFromExcel(splitMethod, trainingPercent);
+				
+				if (this.chckbxNormalizeData.isSelected())
+				{
+					this.dataModel.NormailzeTestingSet();
+					this.dataModel.NormalizeTrainingSet();
+				}
 				
 				if (attributes.size() > 1) 
 				{
