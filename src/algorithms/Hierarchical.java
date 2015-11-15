@@ -18,7 +18,7 @@ import struct.DataSet;
 
 public class Hierarchical implements I_Algorithm 
 {
-	private DataSet dataSet;
+	//private DataSet dataSet;
 	private boolean isRunning;
 	private int desiredClusterNumber;
 	private UserGUI userGUI;
@@ -30,14 +30,14 @@ public class Hierarchical implements I_Algorithm
 	}
 	
 	@Override
-	public void Start() throws InterruptedException 
+	public void run() 
 	{
-		if (dataSet == null)
-		{
-			MessageBox.show("No data set.", "No dataset");
-			return;
-		}
-		else
+		//if (dataSet == null)
+		//{
+		//	MessageBox.show("No data set.", "No dataset");
+			//return;
+		//}
+		//else
 		{
 			this.isRunning = true;
 
@@ -58,12 +58,12 @@ public class Hierarchical implements I_Algorithm
 				this.CheckStoppingCondition();
 				
 				// On every 10th iteration allow the gui to update.
-				if (i % 5 == 0)
-				{
+				//if (i % 5 == 0)
+				//{
 					userGUI.CurrentSolution(this.clusters);
-				}
+				//}
 				
-				while (this.dataSet.GetIsPlotting()){Thread.sleep(500);}				
+				//while (this.dataSet.GetIsPlotting()){Thread.sleep(500);}				
 				i++;
 			}
 			
@@ -86,11 +86,11 @@ public class Hierarchical implements I_Algorithm
 		if(set.GetDataSetSize() < numClusters)
 		{
 			MessageBox.show("You have entered more clusters than available points!", "ERROR");
-			this.dataSet = null;
+			//this.dataSet = null;
 		}
 		else
 		{
-			this.dataSet = set;
+			//this.dataSet = set;
 			this.desiredClusterNumber = numClusters;
 			this.userGUI = gui;
 			

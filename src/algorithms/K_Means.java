@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 import org.jfree.data.xy.XYDataset;
 
@@ -20,22 +21,26 @@ import struct.DataModel.SplitMethod;
 
 public class K_Means implements I_Algorithm {
 	
-	private DataSet dataSet;
 	private boolean isRunning;
 	private int numClusters;
 	private UserGUI userGUI;
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
-	
+	private DataSet set;
 	public K_Means()
 	{
 		isRunning = false;
 	}
 
 	@Override
-	public void Start() throws InterruptedException {
-		if (dataSet == null)
+	public void run()  {
+		if (clusters == null)
+		{
+			gui.MessageBox.show("No data set.", "No dataset");
+			return;
+		}
+		else if(clusters.size()==0)
 		{
 			gui.MessageBox.show("No data set.", "No dataset");
 			return;
@@ -43,7 +48,7 @@ public class K_Means implements I_Algorithm {
 		else
 		{
 			isRunning = true;
-			pickInitCentroids();
+			
 			
 			int i = 0;		
 			while (isRunning)
@@ -52,10 +57,9 @@ public class K_Means implements I_Algorithm {
 				RecalcCentroids();
 				CheckStoppingCondition();			
 				
-				if(i % 5 == 0)
-				{
+				
 					//dataSet.setIsPlotting(true);
-					userGUI.CurrentSolution(this.clusters);
+					//userGUI.CurrentSolution(this.clusters);
 					
 					System.out.println(i + "th iteration...");
 					for (int x = 0; x < clusters.size(); x++)
@@ -63,11 +67,11 @@ public class K_Means implements I_Algorithm {
 						System.out.println("Cluster " + clusters.get(x).GetClusterID());
 						System.out.println(clusters.get(x).ClusterStats());
 					}
-				}
 				
-				this.ResetPoints();
+				
+				//this.ResetPoints();
 					
-				while (dataSet.GetIsPlotting()){Thread.sleep(500);}	
+
 				i++;			
 			}
 			
@@ -89,13 +93,14 @@ public class K_Means implements I_Algorithm {
 		if(set.GetDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
-			dataSet = null;
+			//dataSet = null;
 			return;
 		}
-		dataSet = set;
+		//dataSet = set;
 		this.numClusters = numClusters;
 		userGUI = ugui;
-		pickInitCentroids();
+		pickInitCentroids(set);
+		this.set = set;
 	}
 
 	@Override
@@ -119,11 +124,14 @@ public class K_Means implements I_Algorithm {
 			{
 				for (int j = 0; j < attr.length; j++) 
 				{
-					if (Double.compare(crtCentroids.get(i).getAttribute(attr[j]), prvCentroids.get(i).getAttribute(attr[j])) != 0) 
+					if ((crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>.00001) 
 					{
 						isSame = false;
+						break;
 					}
 				}
+				if(!isSame)
+					break;
 			} 
 		}
 		else
@@ -137,7 +145,49 @@ public class K_Means implements I_Algorithm {
 	
 	private void AssignPoints()
 	{
-		for(int i = 0; i < dataSet.GetDataSetSize(); i++)
+		//foreach cluster
+		for(int c =0;c<clusters.size();c++)
+		{
+			Cluster temp = clusters.get(c);
+			LinkedList<DataPoint> data = temp.RemoveUnAssigned();
+			
+			//foreach datapoint in cluster
+			int stop = data.size();
+			if(set!=null)
+				stop = set.GetDataSetSize();
+			for(int d =stop-1; d>=0;d--)
+			{
+				DataPoint p;
+				if(set!=null)
+					p= set.GetPoint(d);
+				else
+					p = data.get(d);
+				int cluster = 0;
+				double distance = Double.MAX_VALUE;
+				for(int newC=0;newC<clusters.size();newC++)
+				{
+					double dis = clusters.get(newC).GetDistance(p);
+					if(dis<distance)
+					{
+						distance = dis;
+						cluster = newC;
+					}
+				}
+				//p.assigned=true;
+				p.setClusterNumber(this.clusters.get(cluster).GetClusterID());
+				this.clusters.get(cluster).AddDataPoint(p);
+				if(set!=null)
+					set.RemoveDataPoint(d);
+			}
+			if(set!=null)
+			{
+				set = null;
+				break;
+			}
+		}
+
+		//compare distance to all other clusters
+		/*for(int i = 0; i < dataSet.GetDataSetSize(); i++)
 		{
 			DataPoint p = dataSet.GetPoint(i);
 			int cluster = 0;
@@ -155,7 +205,7 @@ public class K_Means implements I_Algorithm {
 			
 			p.setClusterNumber(this.clusters.get(cluster).GetClusterID());
 			this.clusters.get(cluster).AddDataPoint(p);
-		}
+		}*/
 	}
 	
 	private void RecalcCentroids()
@@ -170,7 +220,7 @@ public class K_Means implements I_Algorithm {
 		}
 	}
 	
-	private void pickInitCentroids()
+	private void pickInitCentroids(DataSet s)
 	{
 		clusters = new ArrayList<Cluster>(this.numClusters);
 		crtCentroids = new ArrayList<DataPoint>();
@@ -182,10 +232,10 @@ public class K_Means implements I_Algorithm {
 			
 			while(!validIndex)
 			{
-				double temp = Math.random() * dataSet.GetDataSetSize() - 1;
+				double temp = Math.random() * s.GetDataSetSize() - 1;
 				int index = (int)Math.floor(temp);
 				DataPoint tempPoint;
-				tempPoint = dataSet.GetPoint(index);
+				tempPoint = s.GetPoint(index);
 				
 				if(!clusters.contains(tempPoint))
 				{
@@ -193,6 +243,8 @@ public class K_Means implements I_Algorithm {
 					tempPoint.setCentroid(true);
 					crtCentroids.add(tempPoint);
 					clusters.get(i).SetCentroid(tempPoint);
+					
+					clusters.get(i).SetAttributeNames(new ArrayList<String>(Arrays.asList(tempPoint.GetAttributeNames())));
 				}
 			}
 		}
@@ -220,7 +272,7 @@ public class K_Means implements I_Algorithm {
 		I_Algorithm k = new K_Means();
 		
 		k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
-		k.Start();
+		//k.Start();
 		
 		String x = winning.GetAttributes().get(0);
 		String y = winning.GetAttributes().get(1);

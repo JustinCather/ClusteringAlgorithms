@@ -6,13 +6,12 @@ import gui.UserGUI;
 import struct.Cluster;
 import struct.DataSet;
 
-public interface I_Algorithm {
+public interface I_Algorithm extends Runnable {
 	
 	
 	/** Start the algorithm.
-	 * @throws InterruptedException
 	 */
-	void Start() throws InterruptedException;
+	void run();
 	
 	/** Set the dataset for the algorithm. Must set before calling start!
 	 * @param set The dataset to use.
