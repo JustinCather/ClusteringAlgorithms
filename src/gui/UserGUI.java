@@ -27,6 +27,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 import javax.swing.UIManager;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
@@ -35,6 +36,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.NumberFormatter;
 
 import algorithms.Algorithm;
+import algorithms.FuzzyClustering;
 import algorithms.Hierarchical;
 import algorithms.I_Algorithm;
 import algorithms.K_Means;
@@ -67,7 +69,7 @@ public class UserGUI {
 	private JTextField txtPathOfDataset;
 	private JList<String> attributeList;
 	private DefaultListModel<String> attr;
-
+	private Thread background;
 	/**
 	 * Launch the application.
 	 */
@@ -112,6 +114,17 @@ public class UserGUI {
 	 */
 	public UserGUI() {
 		initialize();
+		 int delay = 1000; //milliseconds
+		 ActionListener taskPerformer = new ActionListener() {
+		      public void actionPerformed(ActionEvent evt) {
+		          if(background!=null)
+		          {
+		        	  if(background.isAlive())return;
+		        	  
+		          }
+		      }
+		  };
+		  new Timer(delay, taskPerformer).start();
 	}
 
 	/**
@@ -261,6 +274,12 @@ public class UserGUI {
 		controlPanel.add(btnStart);
 		
 		JButton btnStop = new JButton("Stop");
+		btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				background.stop();
+				CurrentSolution(algorithm.CurrentSolution());
+			}
+		});
 		btnStop.setBounds(140, 19, 120, 23);
 		controlPanel.add(btnStop);
 		
@@ -433,7 +452,11 @@ public class UserGUI {
 	private void RunModel()
 	{
 		System.gc();
-		
+		if(this.algorithm!=null)
+		{
+		if(this.algorithm.IsRunning())
+			return;
+		}
 		if (this.dataModel != null) 
 		{
 			List<String> attributes = this.attributeList.getSelectedValuesList();
@@ -454,7 +477,7 @@ public class UserGUI {
 					switch (algorithmType) 
 					{
 						case FuzzyLogic:
-							MessageBox.show("Not Implemented.", "Not Implemented");
+							this.algorithm = new FuzzyClustering();
 							break;
 	
 						case Hierarchical:
@@ -471,7 +494,8 @@ public class UserGUI {
 					
 					
 					this.algorithm.Set(this.dataModel.GetTrainingSet(), numberOfClusters, this);
-					this.algorithm.Start();
+					background = new Thread(algorithm);
+					background.start();
 					
 					this.lblStatus.setText("Ready");
 				} 

@@ -91,6 +91,14 @@ public class Cluster
 		return this.dataPoints;
 	}
 	
+	public DataPoint GetDataPoint(int index)
+	{
+		if(dataPoints==null)
+			return null;
+		if(index>this.dataPoints.size())
+			return null;
+		return dataPoints.get(index);
+	}
 	/** Sets the data points associated with this cluster.
 	 * @param points A linked list of data points within this cluster.
 	 */
@@ -104,6 +112,7 @@ public class Cluster
 	 */
 	public void AddDataPoint(DataPoint p)
 	{
+		p.assigned=true;
 		p.setClusterNumber(this.GetClusterID());
 		this.dataPoints.add(p);
 	}
@@ -143,6 +152,8 @@ public class Cluster
 	public void SetCentroid(DataPoint c)
 	{
 		this.centroid = c;
+		if(this.dataPoints.size()==0)
+			this.dataPoints.add(c);
 	}
 	
 	/**
@@ -169,6 +180,7 @@ public class Cluster
 				// sum up each attribute of each data point.
 				for (int j = 0; j < sums.length; j++)
 				{
+					dataPoints.get(i).assigned=false;
 					sums[j] += dataPoints.get(i).getAttribute(Cluster.ATTRIBUTE_NAMES.get(j));
 				}
 			}
@@ -221,6 +233,20 @@ public class Cluster
 		return this.clusterID;
 	}
 	
+	public LinkedList<DataPoint> RemoveUnAssigned()
+	{
+		LinkedList<DataPoint> removed = new LinkedList<DataPoint>();
+		
+		for(int i = 0; i< dataPoints.size();i++)
+		{
+			if(!dataPoints.get(i).assigned)
+				removed.add(dataPoints.get(i));
+		}
+		
+		dataPoints.removeAll(removed);
+		
+		return removed;
+	}
 	/** Gets the current statistics for this cluster.
 	 * @return A formatted string consisting of total data points,
 	 * and a count for each class present in the cluster and its percent.

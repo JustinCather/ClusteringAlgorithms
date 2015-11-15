@@ -11,7 +11,7 @@ public class DataPoint {
 	private boolean isVisited;
 	private boolean isReal;
 	private int clusterNumber;
-	
+	public boolean assigned;
 	public DataPoint()
 	{
 		point = new HashMap<String,Double>();
@@ -20,6 +20,7 @@ public class DataPoint {
 		isVisited=false;
 		isReal=true;
 		clusterNumber=-1;
+		assigned = false;
 	}
 	
 	public boolean isCentroid() {
@@ -92,5 +93,19 @@ public class DataPoint {
 		    System.out.println( "\n\t"+key+":"+this.point.get(key) );
 		}
 		return s;
+	}
+	public double GetDistance(DataPoint p)
+	{
+		double summation = 0;
+		
+		for(int i = 0; i < this.GetNumberOfAttributes(); i++)
+		{
+			double centroidVal = this.getAttribute(this.GetAttributeNames()[i]);
+			double pointTwoVal = p.getAttribute(this.GetAttributeNames()[i]);
+			summation += Math.pow((centroidVal-pointTwoVal),2);
+		}
+		
+		summation = Math.sqrt(summation);
+		return summation;
 	}
 }
