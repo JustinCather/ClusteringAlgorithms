@@ -89,6 +89,35 @@ public class UserGUI {
 		});
 	}
 	
+	/**
+	 * Create the application.
+	 */
+	public UserGUI() {
+		initialize();
+		 int delay = 1000; //milliseconds
+		 ActionListener taskPerformer = new ActionListener() {
+		      public void actionPerformed(ActionEvent evt) {
+		          if(background!=null)
+		          {
+		        	  if(background.isAlive())return;
+		        	  
+		          }
+		      }
+		  };
+		  new Timer(delay, taskPerformer).start();
+	}
+	
+	/**
+	 * Use to update GUI status to 'Ready'.
+	 */
+	public void SetAlgorithmFinished()
+	{
+		this.lblStatus.setText("Ready");
+	}
+	
+	/** Update the the output window and the graph for the GUI.
+	 * @param clusters The clusters to update the GUI with.
+	 */
 	public void CurrentSolution(ArrayList<Cluster> clusters)
 	{
 		int clusterNum = 1;
@@ -111,23 +140,7 @@ public class UserGUI {
 		this.dataModel.GetTrainingSet().SetIsPlotting(false);
 	}
 
-	/**
-	 * Create the application.
-	 */
-	public UserGUI() {
-		initialize();
-		 int delay = 1000; //milliseconds
-		 ActionListener taskPerformer = new ActionListener() {
-		      public void actionPerformed(ActionEvent evt) {
-		          if(background!=null)
-		          {
-		        	  if(background.isAlive())return;
-		        	  
-		          }
-		      }
-		  };
-		  new Timer(delay, taskPerformer).start();
-	}
+	
 
 	/**
 	 * Initialize the contents of the frame.
@@ -504,8 +517,6 @@ public class UserGUI {
 					this.algorithm.Set(this.dataModel.GetTrainingSet(), numberOfClusters, this);
 					background = new Thread(algorithm);
 					background.start();
-					
-					this.lblStatus.setText("Ready");
 				} 
 				else 
 				{

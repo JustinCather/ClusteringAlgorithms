@@ -17,6 +17,7 @@ import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
+import utilities.Dice;
 import struct.DataModel.SplitMethod;
 
 public class K_Means implements I_Algorithm {
@@ -85,6 +86,8 @@ public class K_Means implements I_Algorithm {
 				System.out.println(clusters.get(x).ClusterStats());
 			}
 		}
+		
+		this.userGUI.SetAlgorithmFinished();
 	}
 
 	@Override
@@ -143,6 +146,10 @@ public class K_Means implements I_Algorithm {
 		isRunning = !isSame;
 	}
 	
+	/**
+	 *  Distributes the data points in the set to the
+	 *  cluster that the data point is closest to.
+	 */
 	private void AssignPoints()
 	{
 		//foreach cluster
@@ -208,6 +215,10 @@ public class K_Means implements I_Algorithm {
 		}*/
 	}
 	
+	/**
+	 * Saves the previous iterations centroids and calculates the
+	 * newest iterations centroids.
+	 */
 	private void RecalcCentroids()
 	{
 		this.prvCentroids = this.crtCentroids;
@@ -220,6 +231,10 @@ public class K_Means implements I_Algorithm {
 		}
 	}
 	
+	/** Should only be called once. Picks the initial centroids to 
+	 * build the clustering model from.
+	 * @param s
+	 */
 	private void pickInitCentroids(DataSet s)
 	{
 		clusters = new ArrayList<Cluster>(this.numClusters);
@@ -232,8 +247,8 @@ public class K_Means implements I_Algorithm {
 			
 			while(!validIndex)
 			{
-				double temp = Math.random() * s.GetDataSetSize() - 1;
-				int index = (int)Math.floor(temp);
+				//double temp = Math.random() * s.GetDataSetSize() - 1;
+				int index = Dice.roll(s.GetDataSetSize()); //(int)Math.floor(temp);
 				DataPoint tempPoint;
 				tempPoint = s.GetPoint(index);
 				
@@ -250,16 +265,6 @@ public class K_Means implements I_Algorithm {
 		}
 	}
 	
-	private void ResetPoints()
-	{
-		// only want to clear if still running. Otherwise it would clear the final result.
-		if (isRunning) 
-		{
-			for (int i = 0; i < this.clusters.size(); i++) {
-				this.clusters.get(i).ClearDataPoints();
-			} 
-		}
-	}
 	
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException
 	{
