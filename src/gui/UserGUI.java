@@ -50,6 +50,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextArea;
 import javax.swing.JCheckBox;
+import javax.swing.JTabbedPane;
 
 public class UserGUI {
 	
@@ -166,19 +167,22 @@ public class UserGUI {
 		frmClusteringAlgorithms = new JFrame();
 		frmClusteringAlgorithms.setTitle("Clustering Algorithms");
 		frmClusteringAlgorithms.setResizable(false);
-		frmClusteringAlgorithms.setBounds(100, 100, 1070, 554);
+		frmClusteringAlgorithms.setBounds(100, 100, 1075, 645);
 		frmClusteringAlgorithms.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClusteringAlgorithms.getContentPane().setLayout(null);
 		
-		graphPanel = new JPanel();
-		graphPanel.setBorder(new TitledBorder(null, "Live Graph", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		graphPanel.setBounds(549, 172, 505, 289);
-		frmClusteringAlgorithms.getContentPane().add(graphPanel);
+		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setBounds(0, 0, 1059, 605);
+		frmClusteringAlgorithms.getContentPane().add(tabbedPane);
+		
+		JPanel trainingSetupPanel = new JPanel();
+		tabbedPane.addTab("Training and Setup", null, trainingSetupPanel, null);
+		trainingSetupPanel.setLayout(null);
 		
 		JPanel configPanel = new JPanel();
+		configPanel.setBounds(10, 11, 529, 491);
+		trainingSetupPanel.add(configPanel);
 		configPanel.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		configPanel.setBounds(10, 11, 529, 450);
-		frmClusteringAlgorithms.getContentPane().add(configPanel);
 		configPanel.setLayout(null);
 		
 		JPanel dataSetPanel = new JPanel();
@@ -199,7 +203,7 @@ public class UserGUI {
 		
 		JPanel optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Options", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		optionsPanel.setBounds(10, 94, 255, 345);
+		optionsPanel.setBounds(10, 94, 255, 386);
 		configPanel.add(optionsPanel);
 		optionsPanel.setLayout(null);
 		
@@ -260,7 +264,7 @@ public class UserGUI {
 		
 		JPanel attributesPanel = new JPanel();
 		attributesPanel.setBorder(new TitledBorder(null, "Attributes", TitledBorder.CENTER, TitledBorder.TOP, null, null));
-		attributesPanel.setBounds(275, 94, 244, 345);
+		attributesPanel.setBounds(275, 94, 244, 386);
 		configPanel.add(attributesPanel);
 		attributesPanel.setLayout(null);
 		
@@ -273,7 +277,7 @@ public class UserGUI {
 		attributesPanel.add(btnNone);
 		
 		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setBounds(10, 55, 224, 279);
+		scrollPane.setBounds(10, 55, 224, 320);
 		attributesPanel.add(scrollPane);
 		
 		attributeList = new JList<String>(attr);
@@ -282,30 +286,10 @@ public class UserGUI {
 		attributeList.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		attributeList.setVisibleRowCount(20);
 		
-		JPanel controlPanel = new JPanel();
-		controlPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		controlPanel.setBounds(10, 461, 274, 53);
-		frmClusteringAlgorithms.getContentPane().add(controlPanel);
-		controlPanel.setLayout(null);
-		
-		JButton btnStart = new JButton("Start");
-		btnStart.setBounds(10, 19, 120, 23);
-		controlPanel.add(btnStart);
-		
-		JButton btnStop = new JButton("Stop");
-		btnStop.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				background.stop();
-				CurrentSolution(algorithm.CurrentSolution());
-			}
-		});
-		btnStop.setBounds(140, 19, 120, 23);
-		controlPanel.add(btnStop);
-		
 		JPanel statusPanel = new JPanel();
+		statusPanel.setBounds(408, 513, 129, 53);
+		trainingSetupPanel.add(statusPanel);
 		statusPanel.setBorder(new TitledBorder(null, "Status", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		statusPanel.setBounds(418, 461, 121, 53);
-		frmClusteringAlgorithms.getContentPane().add(statusPanel);
 		statusPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		
 		lblStatus = new JLabel("STATUS");
@@ -313,9 +297,9 @@ public class UserGUI {
 		statusPanel.add(lblStatus);
 		
 		JPanel graphPropertiesPanel = new JPanel();
+		graphPropertiesPanel.setBounds(539, 513, 505, 53);
+		trainingSetupPanel.add(graphPropertiesPanel);
 		graphPropertiesPanel.setBorder(new TitledBorder(null, "Graph Properties", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		graphPropertiesPanel.setBounds(549, 461, 505, 53);
-		frmClusteringAlgorithms.getContentPane().add(graphPropertiesPanel);
 		graphPropertiesPanel.setLayout(null);
 		
 		xComboBox = new JComboBox<String>();
@@ -341,18 +325,46 @@ public class UserGUI {
 		graphPropertiesPanel.add(btnRefresh);
 		
 		JPanel resultsPanel = new JPanel();
+		resultsPanel.setBounds(539, 0, 505, 223);
+		trainingSetupPanel.add(resultsPanel);
 		resultsPanel.setBorder(new TitledBorder(null, "Results", TitledBorder.LEFT, TitledBorder.TOP, null, null));
-		resultsPanel.setBounds(549, 11, 505, 150);
-		frmClusteringAlgorithms.getContentPane().add(resultsPanel);
 		resultsPanel.setLayout(null);
 		
 		JScrollPane scrollPane_1 = new JScrollPane();
-		scrollPane_1.setBounds(10, 15, 485, 124);
+		scrollPane_1.setBounds(10, 15, 485, 197);
 		resultsPanel.add(scrollPane_1);
 		
 		resultsTextPane = new JTextArea();
 		scrollPane_1.setViewportView(resultsTextPane);
 		resultsTextPane.setBackground(SystemColor.control);
+		
+		graphPanel = new JPanel();
+		graphPanel.setBounds(539, 238, 505, 264);
+		trainingSetupPanel.add(graphPanel);
+		graphPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Graph", TitledBorder.LEFT, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		
+		JPanel controlPanel = new JPanel();
+		controlPanel.setBounds(10, 513, 274, 53);
+		trainingSetupPanel.add(controlPanel);
+		controlPanel.setBorder(new TitledBorder(null, "Controls", TitledBorder.LEFT, TitledBorder.TOP, null, null));
+		controlPanel.setLayout(null);
+		
+		JButton btnStart = new JButton("Start");
+		btnStart.setBounds(10, 19, 120, 23);
+		controlPanel.add(btnStart);
+		
+		JButton btnStop = new JButton("Stop");
+		btnStop.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				background.stop();
+				CurrentSolution(algorithm.CurrentSolution());
+			}
+		});
+		btnStop.setBounds(140, 19, 120, 23);
+		controlPanel.add(btnStop);
+		
+		JPanel testingPanel = new JPanel();
+		tabbedPane.addTab("Testing", null, testingPanel, null);
 		
 		//////////////////////////////////////////////////////////////////////////
 		////////////////////////////////EVENTS////////////////////////////////////
@@ -363,6 +375,14 @@ public class UserGUI {
 			public void actionPerformed(ActionEvent e) 
 			{
 				RunModel();
+			}
+		});
+		
+		// Plot button refresh.
+		btnRefresh.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) 
+			{
+				RefreshPlot();
 			}
 		});
 		
@@ -452,14 +472,6 @@ public class UserGUI {
 					yComboBox.setSelectedIndex(1);
 				}
 
-			}
-		});
-		
-		// Plot button refresh.
-		btnRefresh.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) 
-			{
-				RefreshPlot();
 			}
 		});
 	}
