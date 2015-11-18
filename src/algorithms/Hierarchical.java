@@ -15,6 +15,7 @@ import struct.DataModel;
 import struct.DataModel.SplitMethod;
 import struct.DataPoint;
 import struct.DataSet;
+import utilities.Dice;
 
 public class Hierarchical implements I_Algorithm 
 {
@@ -77,6 +78,8 @@ public class Hierarchical implements I_Algorithm
 				System.out.println(clusters.get(x).ClusterStats());
 			}	
 		}
+		
+		this.userGUI.SetAlgorithmFinished();
 	}
 
 	@Override
@@ -130,6 +133,10 @@ public class Hierarchical implements I_Algorithm
 		}
 	}
 	
+	/**
+	 * Removes any clusters from the clusters array if the cluster
+	 * has no data points.
+	 */
 	private void MergeClusters()
 	{
 		ArrayList<Cluster> temp = new ArrayList<Cluster>();
@@ -149,9 +156,14 @@ public class Hierarchical implements I_Algorithm
 		System.out.println("Number of clusters: " + clusters.size());
 	}
 	
+	/**
+	 * Combines any two clusters that are nearest to each other
+	 * into one single cluster. 
+	 */
 	private void AssignPoints()
 	{	
 		// Make a distance map of clusters.
+		boolean didCombineClusters = false;
 		int size = clusters.size();
 		int init = -1;
 		double[][] distanceMap = new double[size][size];
@@ -243,6 +255,7 @@ public class Hierarchical implements I_Algorithm
 			{
 				// Found the closest neighbor cluster that was no closer to any other cluster.
 				// So combine their data points.
+				didCombineClusters = true;
 				Cluster selected = clusters.get(closest);
 				
 				clusters.get(row).AddDataPoints(selected.GetDataPoints());
@@ -251,7 +264,39 @@ public class Hierarchical implements I_Algorithm
 				
 				selected = null;
 			}			
-		} 
+		}
+		
+		// Check to make sure at least two cluster were merged. If none combined, then the clusters are an equal distance from
+		// each other. Pick a random cluster and merge it with its nearest neighbor.
+		if (!didCombineClusters)
+		{
+			int r = Dice.roll(this.clusters.size());
+			int c = 0;
+			Cluster selected = this.clusters.get(r);		
+			Cluster mSelected = null;
+			
+			// init distance.
+			double d = distanceMap[r][c]; //heh
+			
+			for (int i = 1; i < this.clusters.size(); i++)
+			{
+				double temp = distanceMap[r][i];
+				
+				if (temp < d)
+				{
+					d = temp;
+					c = i;
+				}
+			}
+			
+			mSelected = this.clusters.get(c);			
+			selected.AddDataPoints(mSelected.GetDataPoints());
+			mSelected.ClearDataPoints();
+			mSelected.GetCentroid().setVisited(true);
+			
+			mSelected = null;
+			selected = null;
+		}
 	}
 
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException 
