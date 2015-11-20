@@ -255,9 +255,46 @@ public class Cluster
 	{
 		int ptsNum = dataPoints.size();
 		String results = "Total Points = " + ptsNum + "\r\n";
+		HashMap<String, Integer> counts = this.GetClassCounts();
+		
+		
+		for (Entry<String, Integer> entry : counts.entrySet())
+		{
+			double percent = ((double) entry.getValue()) / ptsNum * 100;
+			results += "\t" + entry.getValue() + " " + entry.getKey() + " " + percent + "% \r\n";
+		}
+		
+		return results;
+	}
+	
+	/** Calculates the GINI index for this cluster.
+	 * @return The GINI index for this cluster. The lower the value the more pure
+	 * the cluster is.
+	 */
+	public double CaclGiniIndex()
+	{
+		 int numPts = dataPoints.size();
+        double gini = 1.0;
+        HashMap<String, Integer> counts = this.GetClassCounts();   
+        
+        for (Entry<String, Integer> entry : counts.entrySet())
+        {
+            gini = gini - Math.pow(entry.getValue() / (double)numPts, 2);
+        }
+        
+        return gini;
+	}
+	
+	/** Counts every instance of a class in the cluster.
+	 * @return A hashmap where the key is the class name and the value is the number
+	 * of datapoints of that type that are in the cluster.
+	 */
+	private HashMap<String, Integer> GetClassCounts()
+	{
+		int numPts = dataPoints.size();
 		HashMap<String, Integer> counts = new HashMap<String, Integer>();	
 		
-		for (int i = 0; i < dataPoints.size(); i++)
+		for (int i = 0; i < numPts; i++)
 		{
 			try {
 				String type = dataPoints.get(i).getType();
@@ -268,13 +305,7 @@ public class Cluster
 			}
 		}
 		
-		for (Entry<String, Integer> entry : counts.entrySet())
-		{
-			double percent = ((double) entry.getValue()) / ptsNum * 100;
-			results += "\t" + entry.getValue() + " " + entry.getKey() + " " + percent + "% \r\n";
-		}
-		
-		return results;
+		return counts;
 	}
 	
 	public static void main(String[] args) throws BiffException, IOException
