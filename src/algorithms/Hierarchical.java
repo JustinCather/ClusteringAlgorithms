@@ -20,6 +20,7 @@ import utilities.Dice;
 public class Hierarchical implements I_Algorithm 
 {
 	//private DataSet dataSet;
+	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
 	private UserGUI userGUI;
@@ -28,58 +29,50 @@ public class Hierarchical implements I_Algorithm
 	public Hierarchical() 
 	{
 		this.isRunning = false;
+		this.isAborted = false;
 	}
 	
 	@Override
 	public void run() 
 	{
-		//if (dataSet == null)
-		//{
-		//	MessageBox.show("No data set.", "No dataset");
-			//return;
-		//}
-		//else
-		{
-			this.isRunning = true;
-
-			int i = 0;			
-			while(isRunning)
-			{				
-				// Assign the points in the data set to a cluster.
-				this.AssignPoints();
-				this.MergeClusters();
-				
-				// Recalc the centroid for each cluster.
-				for (int j = 0; j < this.clusters.size(); j++)
-				{
-					this.clusters.get(j).RecalculateCentroid();
-				}
-				
-				// Check if algorithm reached the desired number of clusters.
-				this.CheckStoppingCondition();
-				
-				// On every 10th iteration allow the gui to update.
-				//if (i % 5 == 0)
-				//{
-					userGUI.CurrentSolution(this.clusters);
-				//}
-				
-				//while (this.dataSet.GetIsPlotting()){Thread.sleep(500);}				
-				i++;
+		this.isRunning = true;
+		
+		while(isRunning && !isAborted)
+		{				
+			// Assign the points in the data set to a cluster.
+			this.AssignPoints();
+			this.MergeClusters();
+			
+			// Recalc the centroid for each cluster.
+			for (int j = 0; j < this.clusters.size(); j++)
+			{
+				this.clusters.get(j).RecalculateCentroid();
 			}
 			
-			userGUI.CurrentSolution(this.clusters);
+			// Check if algorithm reached the desired number of clusters.
+			this.CheckStoppingCondition();
 			
-			System.out.println("Results...");
-			for (int x = 0; x < clusters.size(); x++)
-			{
-				clusters.get(x).SetClusterType();
-				System.out.println("Cluster " + clusters.get(x).GetClusterID());
-				System.out.println(clusters.get(x).ClusterStats());
-			}	
+			userGUI.CurrentSolution(this.clusters);		
+			
 		}
 		
+		
+		System.out.println("Results...");
+		for (int x = 0; x < clusters.size(); x++)
+		{
+			clusters.get(x).SetClusterType();
+			System.out.println("Cluster " + clusters.get(x).GetClusterID());
+			System.out.println(clusters.get(x).ClusterStats());
+		}	
+		
 		this.userGUI.SetAlgorithmFinished();
+		this.isRunning = false;
+	}
+	
+	@Override
+	public void Stop()
+	{
+		this.isAborted = true;
 	}
 
 	@Override

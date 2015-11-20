@@ -11,7 +11,12 @@ public interface I_Algorithm extends Runnable {
 	
 	/** Start the algorithm.
 	 */
-	void run();
+	void run();	
+	
+	/**
+	 * Stops the algorithm safely.
+	 */
+	void Stop();
 	
 	/** Set the dataset for the algorithm. Must set before calling start!
 	 * @param set The dataset to use.
@@ -24,6 +29,7 @@ public interface I_Algorithm extends Runnable {
 	 * @return True if running, false if not.
 	 */
 	boolean IsRunning();
+	
 	
 	/** Gets the current clusters of the solution.
 	 * @return An ArrayList of clusters.

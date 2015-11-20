@@ -13,6 +13,7 @@ import struct.DataSet;
 public class FuzzyClustering implements I_Algorithm {
 
 	private DataSet set;
+	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
 	private UserGUI userGUI;
@@ -24,6 +25,7 @@ public class FuzzyClustering implements I_Algorithm {
 	public FuzzyClustering() 
 	{
 		this.isRunning = false;
+		this.isAborted = false;
 	}
 	@Override
 	public void run() {
@@ -42,7 +44,7 @@ public class FuzzyClustering implements I_Algorithm {
 			isRunning = true;
 			
 			int it=1;
-			while (isRunning)
+			while (isRunning && !isAborted)
 			{
 				System.out.println("Iteration " +it);
 				it++;
@@ -51,7 +53,7 @@ public class FuzzyClustering implements I_Algorithm {
 				System.out.println("Calculating centers");
 				RecalcCentroids();
 				System.out.println("Checking stop");
-				CheckStoppingCondition();			
+				CheckStoppingCondition();	
 			}
 			
 			ArrayList<Cluster> clusters = new ArrayList<Cluster>();
@@ -82,8 +84,16 @@ public class FuzzyClustering implements I_Algorithm {
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
 			}
+			
+			isRunning = false;
 		}
 
+	}
+	
+	@Override
+	public void Stop()
+	{
+		this.isAborted = true;
 	}
 
 	@Override

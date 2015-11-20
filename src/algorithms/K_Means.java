@@ -22,6 +22,7 @@ import struct.DataModel.SplitMethod;
 
 public class K_Means implements I_Algorithm {
 	
+	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int numClusters;
 	private UserGUI userGUI;
@@ -29,9 +30,11 @@ public class K_Means implements I_Algorithm {
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
 	private DataSet set;
+	
 	public K_Means()
 	{
 		isRunning = false;
+		this.isAborted = false;
 	}
 
 	@Override
@@ -49,30 +52,25 @@ public class K_Means implements I_Algorithm {
 		else
 		{
 			isRunning = true;
-			
-			
+						
 			int i = 0;		
-			while (isRunning)
+			while (isRunning && !isAborted)
 			{
 				AssignPoints();
 				RecalcCentroids();
 				CheckStoppingCondition();			
 				
-				
-					//dataSet.setIsPlotting(true);
-					//userGUI.CurrentSolution(this.clusters);
+				//dataSet.setIsPlotting(true);
+				//userGUI.CurrentSolution(this.clusters);
 					
-					System.out.println(i + "th iteration...");
-					for (int x = 0; x < clusters.size(); x++)
-					{
-						System.out.println("Cluster " + clusters.get(x).GetClusterID());
-						System.out.println(clusters.get(x).ClusterStats());
-					}
-				
-				
-				//this.ResetPoints();
-					
-
+				System.out.println(i + "th iteration...");
+				for (int x = 0; x < clusters.size(); x++)
+				{
+					System.out.println("Cluster " + clusters.get(x).GetClusterID());
+					System.out.println(clusters.get(x).ClusterStats());
+				}
+							
+				//this.ResetPoints();	
 				i++;			
 			}
 			
@@ -88,6 +86,13 @@ public class K_Means implements I_Algorithm {
 		}
 		
 		this.userGUI.SetAlgorithmFinished();
+		this.isRunning = false;
+	}
+	
+	@Override
+	public void Stop()
+	{
+		this.isAborted = true;
 	}
 
 	@Override

@@ -133,16 +133,16 @@ public class UserGUI {
 		// Update output
 		for (Cluster c : clusters)
 		{
-			this.resultsTextPane.append("Cluster " + clusterNum + "\n" + c.ClusterStats());
+			this.resultsTextPane.insert("Cluster " + clusterNum + "\n" + c.ClusterStats(), 0);
+			this.resultsTextPane.insert("Gini = " + c.CaclGiniIndex() + "\n", 0);
 			clusterNum++;
 		}
-		this.resultsTextPane.append("______________________________________\n");
+		this.resultsTextPane.insert("______________________________________\n", 0);
 		
 		this.dataModel.GetTrainingSet().SetIsPlotting(false);
 	}
 
 	
-
 	/**
 	 * Initialize the contents of the frame.
 	 */
@@ -356,8 +356,21 @@ public class UserGUI {
 		JButton btnStop = new JButton("Stop");
 		btnStop.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				background.stop();
-				CurrentSolution(algorithm.CurrentSolution());
+				//background.stop();
+				
+				if (algorithm != null)
+				{
+					UserGUI.this.lblStatus.setText("Aborting");
+					UserGUI.this.lblStatus.revalidate();
+					algorithm.Stop();
+					try {
+						background.join();
+						MessageBox.show("Algorithm aborted.", "Algorithm Aborted");
+						algorithm = null;
+						background = null;
+					} 
+					catch (InterruptedException e) {e.printStackTrace();}	
+				}				
 			}
 		});
 		btnStop.setBounds(140, 19, 120, 23);
@@ -479,11 +492,12 @@ public class UserGUI {
 	private void RunModel()
 	{
 		System.gc();
-		if(this.algorithm!=null)
+		if(this.algorithm != null)
 		{
-		if(this.algorithm.IsRunning())
-			return;
+			if(this.algorithm.IsRunning())
+				return;
 		}
+		
 		if (this.dataModel != null) 
 		{
 			List<String> attributes = this.attributeList.getSelectedValuesList();
@@ -527,6 +541,7 @@ public class UserGUI {
 					
 					
 					this.algorithm.Set(this.dataModel.GetTrainingSet(), numberOfClusters, this);
+					
 					background = new Thread(algorithm);
 					background.start();
 				} 
