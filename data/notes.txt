@@ -1,0 +1,9 @@
+2_benignMalignant.xls - ALL FuzzyLogic Split=ClassPercent, Hierarchical Split=DataPercent, K-Means Split=ClassPercent
+2_engyTimeToySet.xls - K-Means Normalize & Smooth = 7 Means
+2_twoDiamondsToySet.xls - ALL
+3_Iris Data Set.xls - ALL, Hierarchical Split=EveryOther, K-Means Split=DataPercent Smooth=7 boundaries, 
+3_lsunToySet.xls - Heirarchical Split=ClassPercent Normalize=true Smooth=7 boundaries
+4_tetraToySet.xls - ALL Split=ClassPercent
+6_targetToySet.xls K-Means Split=ClassPercent, FuzzyLogic Split=ClassPercent Normalize=true Smooth=7 boundaries
+7_heptaToySet.xls FuzzyLogic default.
+
