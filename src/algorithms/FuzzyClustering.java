@@ -329,8 +329,9 @@ public class FuzzyClustering implements I_Algorithm {
 		result.output="";
 		for (Cluster c : current)
 		{
-			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			//result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			//result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			result.output += "Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n";
 			clusterNum++;
 		}
 		result.Serialize();

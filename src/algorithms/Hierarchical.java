@@ -358,8 +358,9 @@ public class Hierarchical implements I_Algorithm
 		result.desiredClusters=this.desiredClusterNumber;
 		for (Cluster c : clusters)
 		{
-			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			//result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			//result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			result.output += "Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n";
 			clusterNum++;
 		}
 		result.Serialize();
@@ -372,7 +373,7 @@ public class Hierarchical implements I_Algorithm
 		
 		DataModel winning = new DataModel(path);
 		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAttributes());
+		Cluster.SetAttributeNames(winning.GetAllAttributes());
 		Hierarchical h = new Hierarchical();
 		
 		//h.Set(winning.GetTrainingSet(), clusters, new UserGUI());			

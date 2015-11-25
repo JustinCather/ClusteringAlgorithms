@@ -358,8 +358,9 @@ public class K_Means implements I_Algorithm{
 		result.desiredClusters=this.numClusters;
 		for (Cluster c : clusters)
 		{
-			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			//result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			//result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			result.output += "Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n";
 			clusterNum++;
 		}
 		result.Serialize();
@@ -372,14 +373,14 @@ public class K_Means implements I_Algorithm{
 		
 		DataModel winning = new DataModel(path);
 		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAttributes());
+		Cluster.SetAttributeNames(winning.GetAllAttributes());
 		I_Algorithm k = new K_Means();
 		
 		//k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
 		//k.Start();
 		
-		String x = winning.GetAttributes().get(0);
-		String y = winning.GetAttributes().get(1);
+		String x = winning.GetAllAttributes().get(0);
+		String y = winning.GetAllAttributes().get(1);
 		ScatterPlotWindow plot = new ScatterPlotWindow("Plot");
 		plot.SetXY(x, y);
 		plot.DrawChart(k.CurrentSolution());
