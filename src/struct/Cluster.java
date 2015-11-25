@@ -10,6 +10,11 @@ import java.util.Map.Entry;
 import jxl.read.biff.BiffException;
 import struct.DataModel.SplitMethod;
 
+/** Class that contains datapoints that are near to one another.
+ * @author Justin
+ *
+ */
+
 public class Cluster implements Serializable
 {
 	private static ArrayList<String> ATTRIBUTE_NAMES;
@@ -92,6 +97,10 @@ public class Cluster implements Serializable
 		return this.dataPoints;
 	}
 	
+	/** Gets the data point that exists at the specified index.
+	 * @param index The index of the data point.
+	 * @return The specified data point.
+	 */
 	public DataPoint GetDataPoint(int index)
 	{
 		if(dataPoints==null)
@@ -118,6 +127,9 @@ public class Cluster implements Serializable
 		this.dataPoints.add(p);
 	}
 	
+	/** Adds a linked list of data points to the cluster.
+	 * @param points The data points to add to the cluster.
+	 */
 	public void AddDataPoints(LinkedList<DataPoint> points)
 	{
 		this.dataPoints.addAll(points);
@@ -234,6 +246,9 @@ public class Cluster implements Serializable
 		return this.clusterID;
 	}
 	
+	/** Removes any unassigned data points from the cluster.
+	 * @return A linked list of removed data points.
+	 */
 	public LinkedList<DataPoint> RemoveUnAssigned()
 	{
 		LinkedList<DataPoint> removed = new LinkedList<DataPoint>();
