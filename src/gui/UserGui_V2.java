@@ -72,6 +72,7 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import utilities.Preprocessing.SmoothMethod;
 
 public class UserGui_V2 {
 
@@ -79,6 +80,10 @@ public class UserGui_V2 {
 	private DataModel dataModel;
 	private ScatterPlotEmbedded plot;
 
+	private UserGui_V2 passable;
+	private JFormattedTextField textFieldNumBins;
+	private JCheckBox chckbxSmooth;
+	private JComboBox<SmoothMethod> comboBoxSmoothMethod;
 	private JCheckBox chckbxNormalizeData;
 	private JComboBox<SplitMethod> dataSplitMethod;
 	private JFormattedTextField trainingPercentField;
@@ -97,6 +102,7 @@ public class UserGui_V2 {
 	JLabel label_4;
 	JFormattedTextField clusterField;
 	Results f;
+	
 	private final Action action = new SwingAction();
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -112,7 +118,7 @@ public class UserGui_V2 {
 		});
 		
 	}
-	private UserGui_V2 passable;
+	
 	public UserGui_V2() {
 		initialize();
 		passable=this;
@@ -249,6 +255,208 @@ public class UserGui_V2 {
 		Algorthim = new JPanel();
 		Algorthim.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		Algorthim.setVisible(false);
+		
+		DataSet = new JPanel();
+		DataSet.setBounds(154, 114, 731, 327);
+		frmClusteringAlgorithms.getContentPane().add(DataSet);
+		DataSet.setLayout(null);
+		
+		JPanel panel = new JPanel();
+		panel.setBorder(new TitledBorder(null, "Data", TitledBorder.CENTER, TitledBorder.TOP, null, null));
+		panel.setBounds(10, 9, 451, 53);
+		DataSet.add(panel);
+		panel.setLayout(null);
+		
+		JButton btnDataset = new JButton("Select Dataset");
+		btnDataset.setBounds(6, 19, 117, 23);
+		panel.add(btnDataset);
+		
+		txtPathOfDataset = new JTextField();
+		txtPathOfDataset.setBounds(124, 20, 321, 20);
+		txtPathOfDataset.setEditable(false);
+		txtPathOfDataset.setColumns(10);
+		panel.add(txtPathOfDataset);
+		
+		JPanel panel_1 = new JPanel();
+		panel_1.setBorder(new TitledBorder(null, "Attributes", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		panel_1.setBounds(10, 68, 451, 257);
+		DataSet.add(panel_1);
+		panel_1.setLayout(null);
+		
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setViewportBorder(new TitledBorder(null, "Available", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		scrollPane.setBounds(10, 22, 155, 224);
+		panel_1.add(scrollPane);
+		//private JList availble,selected;
+		availble = new JList<String>(attr);
+		availble.setBorder(null);
+		availble.setBackground(SystemColor.menu);
+		availble.setBounds(10, 22, 155, 224);
+		//panel_1.add(list_2);
+		scrollPane.setViewportView(availble);
+		availble.setBackground(SystemColor.menu);
+		availble.setVisibleRowCount(20);
+		
+		
+		JScrollPane scrollPane1 = new JScrollPane();
+		scrollPane1.setViewportBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Selected", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
+		scrollPane1.setBounds(232, 22, 155, 224);
+		panel_1.add(scrollPane1);
+		selected = new JList();
+		selected.setBorder(null);
+		selected.setModel(new DefaultListModel());
+		selected.setBackground(SystemColor.menu);
+		selected.setBounds(232, 22, 155, 224);
+		scrollPane1.setViewportView(selected);
+		panel_1.add(scrollPane1);
+		
+		JButton btnNewButton = new JButton(">>");
+		btnNewButton.setBounds(170, 69, 55, 23);
+		panel_1.add(btnNewButton);
+		
+		JButton button_1 = new JButton("<<");
+		button_1.setBounds(170, 163, 55, 23);
+		panel_1.add(button_1);
+		
+		JPanel optionsPanel = new JPanel();
+		optionsPanel.setBounds(465, 11, 259, 165);
+		DataSet.add(optionsPanel);
+		optionsPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Options", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		optionsPanel.setLayout(null);
+		
+		JLabel lblTrainingPercent = new JLabel("Training Percent");
+		lblTrainingPercent.setBounds(27, 26, 78, 14);
+		optionsPanel.add(lblTrainingPercent);
+		
+		JLabel lblTestingPercent = new JLabel("Testing Percent");
+		lblTestingPercent.setBounds(149, 26, 78, 14);
+		optionsPanel.add(lblTestingPercent);
+		
+		JLabel lblDataSplitMethod = new JLabel("Data Split Method");
+		lblDataSplitMethod.setBounds(24, 75, 85, 14);
+		optionsPanel.add(lblDataSplitMethod);
+		
+		dataSplitMethod = new JComboBox<SplitMethod>();
+		dataSplitMethod.setModel(new DefaultComboBoxModel<SplitMethod>(SplitMethod.values()));
+		dataSplitMethod.setBounds(10, 92, 112, 20);
+		optionsPanel.add(dataSplitMethod);
+		
+		trainingPercentField = new JFormattedTextField(percentFormatter);
+		trainingPercentField.getDocument().putProperty("number", "Text Area");
+		trainingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
+		trainingPercentField.setValue(75);
+		trainingPercentField.setBounds(10, 44, 112, 23);
+		optionsPanel.add(trainingPercentField);
+		
+		JFormattedTextField testingPercentField = new JFormattedTextField(percentFormatter);
+		testingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
+		testingPercentField.setValue(25);
+		testingPercentField.setEditable(false);
+		testingPercentField.setBounds(132, 44, 112, 23);
+		optionsPanel.add(testingPercentField);
+		
+		chckbxNormalizeData = new JCheckBox("Normalize Data");
+		chckbxNormalizeData.setBounds(132, 91, 112, 23);
+		optionsPanel.add(chckbxNormalizeData);
+		
+		comboBoxSmoothMethod = new JComboBox<SmoothMethod>();
+		comboBoxSmoothMethod.setModel(new DefaultComboBoxModel<SmoothMethod>(SmoothMethod.values()));
+		comboBoxSmoothMethod.setBounds(134, 133, 112, 20);
+		optionsPanel.add(comboBoxSmoothMethod);
+		
+		textFieldNumBins = new JFormattedTextField(clusterFormatter);
+		textFieldNumBins.setHorizontalAlignment(SwingConstants.CENTER);
+		textFieldNumBins.setBounds(81, 133, 43, 20);
+		optionsPanel.add(textFieldNumBins);
+		textFieldNumBins.setColumns(10);
+		
+		chckbxSmooth = new JCheckBox("Smooth");
+		chckbxSmooth.setBounds(10, 132, 67, 23);
+		optionsPanel.add(chckbxSmooth);
+		
+		JLabel lblBins = new JLabel("# Bins");
+		lblBins.setBounds(87, 119, 30, 14);
+		optionsPanel.add(lblBins);
+		
+		JLabel lblMethod = new JLabel("Method");
+		lblMethod.setBounds(167, 119, 46, 14);
+		optionsPanel.add(lblMethod);
+		
+		// Update the testing set when the training set percent changes.
+		trainingPercentField.getDocument().addDocumentListener(new DocumentListener() {
+			
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				UpdateTestingSet();
+			}
+			
+			public void UpdateTestingSet()
+			{
+				int val = (int)trainingPercentField.getValue();
+				val = 100 - val;			
+				testingPercentField.setValue(val);
+			}
+		});
+		btnNewButton.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				DefaultListModel model = (DefaultListModel) availble.getModel();
+				DefaultListModel m2 = (DefaultListModel) selected.getModel();
+				
+				int selectedIndex = availble.getSelectedIndex();
+				if (selectedIndex != -1) {
+					String s = model.getElementAt(selectedIndex).toString();
+				    model.remove(selectedIndex);
+				    m2.addElement(s);
+				    
+				}
+				
+			}
+			
+		});
+		button_1.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent arg0) {
+				DefaultListModel model = (DefaultListModel) selected.getModel();
+				DefaultListModel m2 = (DefaultListModel) availble.getModel();
+				
+				int selectedIndex = selected.getSelectedIndex();
+				if (selectedIndex != -1) {
+					String s = model.getElementAt(selectedIndex).toString();
+				    model.remove(selectedIndex);
+				    m2.addElement(s);
+				    
+				}
+				
+			}
+			
+		});
+		btnDataset.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				JFileChooser fileChooser = new JFileChooser();
+				File selectedFile = null;
+				fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
+				
+				int result = fileChooser.showOpenDialog(null);
+				
+				if (result == JFileChooser.APPROVE_OPTION)
+				{
+					selectedFile = fileChooser.getSelectedFile();
+					txtPathOfDataset.setText(selectedFile.getAbsolutePath());
+					LoadDataModel();
+					PopulateAttributeBox();
+				}
+			}
+		});
 		Algorthim.setBounds(154, 114, 337, 164);
 		frmClusteringAlgorithms.getContentPane().add(Algorthim);
 		Algorthim.setLayout(null);
@@ -360,6 +568,7 @@ public class UserGui_V2 {
 					{
 						//dataModel.GetDataFromExcel(splitMethod, trainingPercent);
 						
+						// Check normalize.
 						if (chckbxNormalizeData.isSelected())
 						{
 							m.SetNormalized(true);
@@ -368,6 +577,13 @@ public class UserGui_V2 {
 						{
 							m.SetNormalized(false);
 						}
+						
+						// Check smoothing.
+						if (chckbxSmooth.isSelected())
+						{
+							m.EnableSmoothing(Integer.parseInt(textFieldNumBins.getText()), comboBoxSmoothMethod.getItemAt(comboBoxSmoothMethod.getSelectedIndex()));
+						}
+						
 						
 						if (attributes.size() > 1) 
 						{		
@@ -540,110 +756,6 @@ public class UserGui_V2 {
 		separator_2.setBounds(0, 485, 1069, 36);
 		frmClusteringAlgorithms.getContentPane().add(separator_2);
 		
-		DataSet = new JPanel();
-		DataSet.setBounds(154, 114, 731, 327);
-		frmClusteringAlgorithms.getContentPane().add(DataSet);
-		DataSet.setLayout(null);
-		
-		JPanel panel = new JPanel();
-		panel.setBorder(new TitledBorder(null, "Data", TitledBorder.CENTER, TitledBorder.TOP, null, null));
-		panel.setBounds(10, 9, 451, 53);
-		DataSet.add(panel);
-		panel.setLayout(null);
-		
-		JButton btnDataset = new JButton("Select Dataset");
-		btnDataset.setBounds(6, 19, 117, 23);
-		panel.add(btnDataset);
-		
-		txtPathOfDataset = new JTextField();
-		txtPathOfDataset.setBounds(124, 20, 321, 20);
-		txtPathOfDataset.setEditable(false);
-		txtPathOfDataset.setColumns(10);
-		panel.add(txtPathOfDataset);
-		
-		JPanel panel_1 = new JPanel();
-		panel_1.setBorder(new TitledBorder(null, "Attributes", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		panel_1.setBounds(10, 68, 451, 257);
-		DataSet.add(panel_1);
-		panel_1.setLayout(null);
-		
-		
-		JScrollPane scrollPane = new JScrollPane();
-		scrollPane.setViewportBorder(new TitledBorder(null, "Available", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		scrollPane.setBounds(10, 22, 155, 224);
-		panel_1.add(scrollPane);
-		//private JList availble,selected;
-		availble = new JList<String>(attr);
-		availble.setBorder(null);
-		availble.setBackground(SystemColor.menu);
-		availble.setBounds(10, 22, 155, 224);
-		//panel_1.add(list_2);
-		scrollPane.setViewportView(availble);
-		availble.setBackground(SystemColor.menu);
-		availble.setVisibleRowCount(20);
-		
-		
-		JScrollPane scrollPane1 = new JScrollPane();
-		scrollPane1.setViewportBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Selected", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
-		scrollPane1.setBounds(232, 22, 155, 224);
-		panel_1.add(scrollPane1);
-		selected = new JList();
-		selected.setBorder(null);
-		selected.setModel(new DefaultListModel());
-		selected.setBackground(SystemColor.menu);
-		selected.setBounds(232, 22, 155, 224);
-		scrollPane1.setViewportView(selected);
-		panel_1.add(scrollPane1);
-		
-		JButton btnNewButton = new JButton(">>");
-		btnNewButton.setBounds(170, 69, 55, 23);
-		panel_1.add(btnNewButton);
-		
-		JButton button_1 = new JButton("<<");
-		button_1.setBounds(170, 163, 55, 23);
-		panel_1.add(button_1);
-		
-		JPanel optionsPanel = new JPanel();
-		optionsPanel.setBounds(465, 11, 259, 140);
-		DataSet.add(optionsPanel);
-		optionsPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Options", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
-		optionsPanel.setLayout(null);
-		
-		JLabel lblTrainingPercent = new JLabel("Training Percent");
-		lblTrainingPercent.setBounds(27, 26, 78, 14);
-		optionsPanel.add(lblTrainingPercent);
-		
-		JLabel lblTestingPercent = new JLabel("Testing Percent");
-		lblTestingPercent.setBounds(149, 26, 78, 14);
-		optionsPanel.add(lblTestingPercent);
-		
-		JLabel lblDataSplitMethod = new JLabel("Data Split Method");
-		lblDataSplitMethod.setBounds(24, 75, 85, 14);
-		optionsPanel.add(lblDataSplitMethod);
-		
-		dataSplitMethod = new JComboBox<SplitMethod>();
-		dataSplitMethod.setModel(new DefaultComboBoxModel<SplitMethod>(SplitMethod.values()));
-		dataSplitMethod.setBounds(10, 92, 112, 20);
-		optionsPanel.add(dataSplitMethod);
-		
-		trainingPercentField = new JFormattedTextField(percentFormatter);
-		trainingPercentField.getDocument().putProperty("number", "Text Area");
-		trainingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
-		trainingPercentField.setValue(75);
-		trainingPercentField.setBounds(10, 44, 112, 23);
-		optionsPanel.add(trainingPercentField);
-		
-		JFormattedTextField testingPercentField = new JFormattedTextField(percentFormatter);
-		testingPercentField.setHorizontalAlignment(SwingConstants.CENTER);
-		testingPercentField.setValue(25);
-		testingPercentField.setEditable(false);
-		testingPercentField.setBounds(132, 44, 112, 23);
-		optionsPanel.add(testingPercentField);
-		
-		chckbxNormalizeData = new JCheckBox("Normalize Data");
-		chckbxNormalizeData.setBounds(132, 91, 112, 23);
-		optionsPanel.add(chckbxNormalizeData);
-		
 		JButton btnStart = new JButton("Start");
 		btnStart.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
@@ -702,81 +814,6 @@ public class UserGui_V2 {
 		JMenuItem mntmOpen = new JMenuItem("Open");
 		mntmOpen.setAction(action);
 		mnFile.add(mntmOpen);
-		
-		// Update the testing set when the training set percent changes.
-		trainingPercentField.getDocument().addDocumentListener(new DocumentListener() {
-			
-			@Override
-			public void removeUpdate(DocumentEvent e) {
-				UpdateTestingSet();
-			}
-			
-			@Override
-			public void insertUpdate(DocumentEvent e) {
-				UpdateTestingSet();
-			}
-			
-			@Override
-			public void changedUpdate(DocumentEvent e) {
-				UpdateTestingSet();
-			}
-			
-			public void UpdateTestingSet()
-			{
-				int val = (int)trainingPercentField.getValue();
-				val = 100 - val;			
-				testingPercentField.setValue(val);
-			}
-		});
-		btnNewButton.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg0) {
-				DefaultListModel model = (DefaultListModel) availble.getModel();
-				DefaultListModel m2 = (DefaultListModel) selected.getModel();
-				
-				int selectedIndex = availble.getSelectedIndex();
-				if (selectedIndex != -1) {
-					String s = model.getElementAt(selectedIndex).toString();
-				    model.remove(selectedIndex);
-				    m2.addElement(s);
-				    
-				}
-				
-			}
-			
-		});
-		button_1.addActionListener(new ActionListener(){
-			public void actionPerformed(ActionEvent arg0) {
-				DefaultListModel model = (DefaultListModel) selected.getModel();
-				DefaultListModel m2 = (DefaultListModel) availble.getModel();
-				
-				int selectedIndex = selected.getSelectedIndex();
-				if (selectedIndex != -1) {
-					String s = model.getElementAt(selectedIndex).toString();
-				    model.remove(selectedIndex);
-				    m2.addElement(s);
-				    
-				}
-				
-			}
-			
-		});
-		btnDataset.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				JFileChooser fileChooser = new JFileChooser();
-				File selectedFile = null;
-				fileChooser.setCurrentDirectory(new File(System.getProperty("user.dir")));
-				
-				int result = fileChooser.showOpenDialog(null);
-				
-				if (result == JFileChooser.APPROVE_OPTION)
-				{
-					selectedFile = fileChooser.getSelectedFile();
-					txtPathOfDataset.setText(selectedFile.getAbsolutePath());
-					LoadDataModel();
-					PopulateAttributeBox();
-				}
-			}
-		});
 		tree.expandRow(0);
 	}
 	

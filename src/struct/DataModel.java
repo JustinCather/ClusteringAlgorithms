@@ -13,6 +13,7 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 import utilities.Preprocessing;
+import utilities.Preprocessing.SmoothMethod;
 
 /** Class to read in dataset from excel file and generate
  * the testing and training sets.
@@ -41,6 +42,10 @@ public class DataModel implements Serializable
 	private String excelPath;
 	private boolean isNormalized;
 	
+	private boolean isSmooth;
+	private int numSmoothBuckets;
+	private SmoothMethod smoothMethod;
+	
 	/** Constructor
 	 * @param excelPath The excel file that contains the data set.
 	 *
@@ -56,8 +61,39 @@ public class DataModel implements Serializable
 		this.allAttributes= new ArrayList<String>();
 		this.usedAttributes = new ArrayList<String>();
 		this.attributesNotUsed = new ArrayList<String>();
+		
+		this.isSmooth = false;
+		this.numSmoothBuckets = -1;
+		this.smoothMethod = null;
 	}
 	
+	/** Gets if the data in this model will be smoothed.
+	 * @return True if data is smoothed, false if not.
+	 */
+	public boolean isSmooth() 
+	{
+		return isSmooth;
+	}
+
+	/** Disables smoothing of the data.
+	 * 
+	 */
+	public void DisableSmoothing() 
+	{
+		this.isSmooth = false;
+	}
+	
+	/** Enable the smoothing of the data.
+	 * @param numBuckets The number of buckets to split the data into.
+	 * @param m The method to use when smoothing.
+	 */
+	public void EnableSmoothing(int numBuckets, SmoothMethod m)
+	{
+		this.isSmooth = true;
+		this.numSmoothBuckets = numBuckets;
+		this.smoothMethod = m;
+	}
+
 	/** Gets the path of the excel file.
 	 * @return
 	 */
@@ -288,6 +324,11 @@ public class DataModel implements Serializable
 		{
 			Preprocessing.NormalizeDataSet(this.trainingSet);
 			Preprocessing.NormalizeDataSet(this.testingSet);
+		}
+		
+		if (this.isSmooth)
+		{
+			Preprocessing.SmoothDataSet(this.trainingSet, this.numSmoothBuckets, this.smoothMethod);
 		}
 	}
 	
