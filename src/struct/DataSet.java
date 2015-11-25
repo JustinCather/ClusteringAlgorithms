@@ -1,16 +1,35 @@
 package struct;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class DataSet 
 {	
+	private ArrayList<String> attributes;
 	private LinkedList<DataPoint> points;
 	private boolean isPlotting;
 	
 	public DataSet()
 	{
 		points = new LinkedList<DataPoint>();
+		attributes = new ArrayList<String>();
 		isPlotting = false;
+	}
+	
+	/** Sets the attributes that exist for this data set.
+	 * @param a The list of attributes to use for this data set.
+	 */
+	public void SetAttributes(ArrayList<String> a)
+	{
+		this.attributes = a;
+	}
+	
+	/** Gets the attributes that exist for this data set.
+	 * @return The list of attribute that are used by this data set.
+	 */
+	public ArrayList<String> GetAttributes()
+	{
+		return this.attributes;
 	}
 	
 	/**
@@ -128,5 +147,13 @@ public class DataSet
 	public int GetDataSetSize()
 	{
 		return points.size();
+	}
+	
+	/** Gets the linked list of DataPoint objects.
+	 * @return The linked list of datapoints.
+	 */
+	public LinkedList<DataPoint> GetDataPoints()
+	{
+		return this.points;
 	}
 }
