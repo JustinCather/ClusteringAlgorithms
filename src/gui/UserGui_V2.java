@@ -335,7 +335,7 @@ public class UserGui_V2 {
 					
 						ArrayList<String> attributes = new ArrayList<String>();
 						ArrayList<String>unused = new ArrayList<String>();
-						//attributeList.getSelectedValuesList();
+						
 						if(selected.getModel().getSize()==0)
 						{
 							MessageBox.show("Please select an attribute", "Error");
@@ -362,8 +362,11 @@ public class UserGui_V2 {
 						
 						if (chckbxNormalizeData.isSelected())
 						{
-							//dataModel.NormailzeTestingSet();
-							//dataModel.NormalizeTrainingSet();
+							m.SetNormalized(true);
+						}
+						else
+						{
+							m.SetNormalized(false);
 						}
 						
 						if (attributes.size() > 1) 
