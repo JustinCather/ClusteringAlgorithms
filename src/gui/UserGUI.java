@@ -635,7 +635,7 @@ public class UserGUI {
 		{
 			this.dataModel = new DataModel(txtPathOfDataset.getText());
 			this.dataModel.GetAttributesFromExcel();
-			Cluster.SetAttributeNames(dataModel.GetAttributes());
+			Cluster.SetAttributeNames(dataModel.GetAllAttributes());
 		} 
 		catch (BiffException | IOException e) {
 			MessageBox.show("Tried to get attributes from excel file, but an error occured. \n" + e.getMessage(), "Error Reading Excel File");
@@ -650,7 +650,7 @@ public class UserGUI {
 		{
 			this.attr.clear();
 			
-			for (String s : this.dataModel.GetAttributes())
+			for (String s : this.dataModel.GetAllAttributes())
 			{
 				this.attr.addElement(s);
 			}

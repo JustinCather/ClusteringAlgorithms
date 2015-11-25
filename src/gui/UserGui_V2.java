@@ -786,7 +786,7 @@ public class UserGui_V2 {
 		{
 			this.dataModel = new DataModel(txtPathOfDataset.getText());
 			this.dataModel.GetAttributesFromExcel();
-			Cluster.SetAttributeNames(dataModel.GetAttributes());
+			Cluster.SetAttributeNames(dataModel.GetAllAttributes());
 		} 
 		catch (BiffException | IOException e) {
 			MessageBox.show("Tried to get attributes from excel file, but an error occured. \n" + e.getMessage(), "Error Reading Excel File");
@@ -801,7 +801,7 @@ public class UserGui_V2 {
 		{
 			this.attr.clear();
 			((DefaultListModel)this.selected.getModel()).removeAllElements();
-			for (String s : this.dataModel.GetAttributes())
+			for (String s : this.dataModel.GetAllAttributes())
 			{
 				this.attr.addElement(s);
 			}
@@ -822,8 +822,7 @@ public class UserGui_V2 {
 		{
 			s.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
 			s.output+="Gini = " + c.CaclGiniIndex() + "\n";
-			this.resultsTextPane.insert("Cluster " + clusterNum + "\n" + c.ClusterStats(), 0);
-			this.resultsTextPane.insert("Gini = " + c.CaclGiniIndex() + "\n", 0);
+			this.resultsTextPane.insert("Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n", 0);
 			clusterNum++;
 		}
 		s.Serialize();
@@ -836,7 +835,7 @@ public class UserGui_V2 {
 		// Update graph.
 		if(this.xComboBox.getItemCount()==0||this.yComboBox.getItemCount()==0)
 		{
-			for (String s : this.algorithm.GetDataModel().attributes)
+			for (String s : this.algorithm.GetDataModel().GetUsedAttributes())
 			{
 				xComboBox.addItem(s);
 				yComboBox.addItem(s);
@@ -858,8 +857,7 @@ public class UserGui_V2 {
 		// Update output
 		for (Cluster c : clusters)
 		{
-			this.resultsTextPane.insert("Cluster " + clusterNum + "\n" + c.ClusterStats(), 0);
-			this.resultsTextPane.insert("Gini = " + c.CaclGiniIndex() + "\n", 0);
+			this.resultsTextPane.insert("Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n", 0);
 			clusterNum++;
 		}
 		this.resultsTextPane.insert("______________________________________\n", 0);
@@ -907,12 +905,12 @@ public class UserGui_V2 {
 				{
 						attr.clear();
 						((DefaultListModel)selected.getModel()).removeAllElements();
-						for (String sz : s.dataModel.attributes)
+						for (String sz : s.dataModel.GetUsedAttributes())
 						{
 							((DefaultListModel)selected.getModel()).addElement(sz);
 						}
 						
-						for (String sz : s.dataModel.attributesNotUsed)
+						for (String sz : s.dataModel.GetAttributesNotUsed())
 						{
 							attr.addElement(sz);
 						}
@@ -958,7 +956,7 @@ public class UserGui_V2 {
 			f=s;
 			xComboBox.removeAllItems();
 			yComboBox.removeAllItems();
-			for (String sz : s.dataModel.attributes)
+			for (String sz : s.dataModel.GetUsedAttributes())
 			{
 				xComboBox.addItem(sz);
 				yComboBox.addItem(sz);

@@ -330,7 +330,7 @@ public class Cluster implements Serializable
 		DataModel winning = new DataModel(path);
 		winning.GetAttributesFromExcel();
 		winning.GetDataFromExcel(SplitMethod.ClassPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAttributes());
+		Cluster.SetAttributeNames(winning.GetAllAttributes());
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		int clusterCount = 0;
 		Cluster temp = new Cluster(clusterCount);

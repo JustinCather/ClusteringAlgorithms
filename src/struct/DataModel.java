@@ -12,6 +12,7 @@ import java.util.Random;
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
+import utilities.Preprocessing;
 
 /** Class to read in dataset from excel file and generate
  * the testing and training sets.
@@ -29,12 +30,12 @@ public class DataModel implements Serializable
 	}
 	
 	public enum SplitMethod{ClassPercent, DataPercent, RandomPercent, EveryOther };
-	
+		
 	private transient DataSet trainingSet;
 	private transient DataSet testingSet;
-	public ArrayList<String> attributes;
-	public ArrayList<String> attributesNotUsed;
 	private transient ArrayList<String> allAttributes;
+	private ArrayList<String> attributesNotUsed;
+	private ArrayList<String> usedAttributes;
 	private SplitMethod splitMethod;
 	private double percent;
 	private String excelPath;
@@ -45,16 +46,16 @@ public class DataModel implements Serializable
 	 *
 	 */
 	public DataModel(String excelPath)
-	{
+	{	
 		this.excelPath = excelPath;
 		this.trainingSet = null;
-		this.testingSet = null;
-		this.attributes = new ArrayList<String>();
-		this.attributesNotUsed = new ArrayList<String>();
+		this.testingSet = null;	
 		this.splitMethod = SplitMethod.DataPercent;
 		this.percent = .5;
 		this.isNormalized = false;
 		this.allAttributes= new ArrayList<String>();
+		this.usedAttributes = new ArrayList<String>();
+		this.attributesNotUsed = new ArrayList<String>();
 	}
 	
 	/** Gets the path of the excel file.
@@ -87,7 +88,7 @@ public class DataModel implements Serializable
 	 */
 	public void SetAttributes(ArrayList<String> attr, ArrayList<String>unused)
 	{
-		this.attributes = attr;
+		this.usedAttributes = attr;
 		this.attributesNotUsed = unused;
 	}
 	
@@ -117,12 +118,28 @@ public class DataModel implements Serializable
 		return this.testingSet;
 	}
 	
-	/** Gets the attributes associated with the data points.
+	/** Gets both used and unused attributes.
 	 * @return An ArrayList of attribute names.
 	 */
-	public ArrayList<String> GetAttributes()
+	public ArrayList<String> GetAllAttributes()
 	{
 		return allAttributes;
+	}
+	
+	/** Gets the attributes that are used.
+	 * @return An ArrayList of used attribute names.
+	 */
+	public ArrayList<String> GetUsedAttributes()
+	{
+		return this.usedAttributes;
+	}
+	
+	/** Gets the attributes that are not used.
+	 * @return An ArrayList of unused attribute names.
+	 */
+	public ArrayList<String> GetAttributesNotUsed()
+	{
+		return this.attributesNotUsed;
 	}
 	
 	/**
@@ -152,44 +169,6 @@ public class DataModel implements Serializable
 		return (int)Math.floor(this.percent);
 	}
 	
-	/**
-	 * Normalizes all attributes in the training set.
-	 */
-	public void NormalizeTrainingSet()
-	{
-		for (String a : this.GetAttributes())
-		{
-			double min = this.trainingSet.FindMin(a);
-			double max = this.trainingSet.FindMax(a);
-			
-			for (int i = 0; i < this.trainingSet.GetDataSetSize(); i++)
-			{
-				double val = this.trainingSet.GetPoint(i).getAttribute(a);
-				val = this.NormailizeDataPoint(val, min, max);
-				this.trainingSet.GetPoint(i).changeAttributeValue(a, val);
-			}
-		}
-	}
-	
-	/**
-	 * Normalizes all attributes in the testing set.
-	 */
-	public void NormailzeTestingSet()
-	{
-		for (String a : this.GetAttributes())
-		{
-			double min = this.testingSet.FindMin(a);
-			double max = this.testingSet.FindMax(a);
-			
-			for (int i = 0; i < this.testingSet.GetDataSetSize(); i++)
-			{
-				double val = this.testingSet.GetPoint(i).getAttribute(a);
-				val = this.NormailizeDataPoint(val, min, max);
-				this.testingSet.GetPoint(i).changeAttributeValue(a, val);
-			}
-		}
-	}
-	
 	
 	/** Gets the actual data from the excel document.
 	 * @param useAttributes
@@ -208,7 +187,7 @@ public class DataModel implements Serializable
 			this.testingSet = new DataSet();
 			
 			// Hopefully user never got the attributes from the excel file.
-			if (this.GetAttributes().size() < 1)
+			if (this.GetAllAttributes().size() < 1)
 				this.GetAttributesFromExcel();
 			
 			Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
@@ -244,6 +223,9 @@ public class DataModel implements Serializable
 			
 			this.DistributeDataPoint(tempPoints);
 			tempPoints = null;	
+			
+			this.trainingSet.SetAttributes(useAttributes);
+			this.testingSet.SetAttributes(useAttributes);
 		}
 	}
 	
@@ -268,7 +250,7 @@ public class DataModel implements Serializable
 		this.testingSet = new DataSet();
 		
 		// Hopefully user never got the attributes from the excel file.
-		if (this.GetAttributes().size() < 1)
+		if (this.GetAllAttributes().size() < 1)
 			this.GetAttributesFromExcel();
 		
 		Workbook workbook = Workbook.getWorkbook(new File(this.excelPath));
@@ -283,7 +265,7 @@ public class DataModel implements Serializable
 			for(int c = 0; c < col; c++)
 			{
 				if(c != col - 1)
-					p.addAttribute(this.attributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
+					p.addAttribute(this.allAttributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
 				else
 					p.setType(sheet.getCell(c,r).getContents());
 			}
@@ -294,15 +276,18 @@ public class DataModel implements Serializable
 		
 		this.DistributeDataPoint(tempPoints);
 		tempPoints = null;
+		
+		this.trainingSet.SetAttributes(this.GetAllAttributes());
+		this.testingSet.SetAttributes(this.GetAllAttributes());
 	}
 	
 	public void GetDataFromExcel()throws BiffException, IOException
 	{
-		GetDataFromExcel(this.attributes,this.splitMethod,this.percent);
+		GetDataFromExcel(this.usedAttributes,this.splitMethod,this.percent);
 		if(this.isNormalized)
 		{
-			this.NormailzeTestingSet();
-			this.NormalizeTrainingSet();
+			Preprocessing.NormalizeDataSet(this.trainingSet);
+			Preprocessing.NormalizeDataSet(this.testingSet);
 		}
 	}
 	
@@ -472,10 +457,6 @@ public class DataModel implements Serializable
 		}
 	}
 	
-	private double NormailizeDataPoint(double value, double min, double max)
-	{
-		return (value - min) / (max - min);
-	}
 	
 	public static void main(String[] args) throws BiffException, IOException
 	{
@@ -485,7 +466,7 @@ public class DataModel implements Serializable
 		//DataModel test = DataModel.CreateFromExcel(path, SplitMethod.RandomPercent, 99);
 		DataModel test = new DataModel(path);
 		test.GetAttributesFromExcel();
-		test.GetDataFromExcel(SplitMethod.ClassPercent, 75);
+		test.GetDataFromExcel(SplitMethod.ClassPercent, 50);
 		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
 		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
 	}
