@@ -38,79 +38,84 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 	@Override
 	public void run() {
-			current = new ArrayList<Cluster>();
-			algState = State.Initializing;
 			isRunning = true;
+			
 			try
 			{
 				this.model.GetDataFromExcel();
 			}
 			catch(Exception ex)
+			{}
+			
+			if (this.model.GetTrainingSet().GetDataSetSize() > this.desiredClusterNumber)
 			{
+				current = new ArrayList<Cluster>();
+				algState = State.Initializing;
 				
-			}
-			this.set=model.GetTrainingSet();
-			pickInitCentroids(set);
-			
-			this.fuzzyMatrix = new LinkedList<double[]>();
-			for(int i=0;i<set.GetDataSetSize();i++)
-			{
-				fuzzyMatrix.add(new double[this.desiredClusterNumber]);
-			}
-			int it=1;
-			algState = State.Running;
-			while (isRunning && !isAborted)
-			{
-				System.out.println("Iteration " +it);
-				it++;
-				System.out.println("Assigning points");
-				AssignPoints();
-				System.out.println("Calculating centers");
-				RecalcCentroids();
-				System.out.println("Checking stop");
-				CheckStoppingCondition();	
-			}
-			
-			algState = State.Analyzing;
-			ArrayList<Cluster> clusters = new ArrayList<Cluster>();
-			for(int i =0; i< this.desiredClusterNumber; i++)
-				clusters.add(new Cluster(i));
-			int size = this.set.GetDataSetSize();
-			for(int dp = 0; dp<size;dp++)
-			{
-				DataPoint temp = this.set.GetPoint(size-1-dp);
-				int clusterNumber = 0;
-				double strength = this.fuzzyMatrix.get(size-1-dp)[0];
-				for(int i=1;i<this.desiredClusterNumber;i++)
+				this.set=model.GetTrainingSet();
+				pickInitCentroids(set);
+				
+				this.fuzzyMatrix = new LinkedList<double[]>();
+				for(int i=0;i<set.GetDataSetSize();i++)
 				{
-					if(this.fuzzyMatrix.get(size-1-dp)[i]>strength)
-					{
-						strength=this.fuzzyMatrix.get(size-1-dp)[i];
-						clusterNumber =i;
-					}
+					fuzzyMatrix.add(new double[this.desiredClusterNumber]);
 				}
-				clusters.get(clusterNumber).AddDataPoint(temp);
+				int it=1;
+				algState = State.Running;
+				while (isRunning && !isAborted)
+				{
+					System.out.println("Iteration " +it);
+					it++;
+					System.out.println("Assigning points");
+					AssignPoints();
+					System.out.println("Calculating centers");
+					RecalcCentroids();
+					System.out.println("Checking stop");
+					CheckStoppingCondition();	
+				}
+				
+				algState = State.Analyzing;
+				ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+				for(int i =0; i< this.desiredClusterNumber; i++)
+					clusters.add(new Cluster(i));
+				int size = this.set.GetDataSetSize();
+				for(int dp = 0; dp<size;dp++)
+				{
+					DataPoint temp = this.set.GetPoint(size-1-dp);
+					int clusterNumber = 0;
+					double strength = this.fuzzyMatrix.get(size-1-dp)[0];
+					for(int i=1;i<this.desiredClusterNumber;i++)
+					{
+						if(this.fuzzyMatrix.get(size-1-dp)[i]>strength)
+						{
+							strength=this.fuzzyMatrix.get(size-1-dp)[i];
+							clusterNumber =i;
+						}
+					}
+					clusters.get(clusterNumber).AddDataPoint(temp);
+				}
+				model.GetTrainingSet().SetIsPlotting(true);
+				userGUI.CurrentSolution(clusters);
+				
+				System.out.println("Results...");
+				for (int x = 0; x < clusters.size(); x++)
+				{
+					clusters.get(x).SetClusterType();
+					System.out.println("Cluster " + clusters.get(x).GetClusterID());
+					System.out.println(clusters.get(x).ClusterStats());
+				}
+				current = clusters;
+				algState=State.Analyzing;
+				GenerateResult();
 			}
-			model.GetTrainingSet().SetIsPlotting(true);
-			userGUI.CurrentSolution(clusters);
-			
-			System.out.println("Results...");
-			for (int x = 0; x < clusters.size(); x++)
+			else
 			{
-				clusters.get(x).SetClusterType();
-				System.out.println("Cluster " + clusters.get(x).GetClusterID());
-				System.out.println(clusters.get(x).ClusterStats());
+				MessageBox.show("Cannot have more clusters than there are datapoints!", "To many clusters.");
 			}
-			current = clusters;
-			algState=State.Analyzing;
-			GenerateResult();
-			//this.userGUI.SetAlgorithmFinished();
 			
-			
+			//this.userGUI.SetAlgorithmFinished();	
 			isRunning = false;
 		}
-
-
 	
 	@Override
 	public void Stop()
