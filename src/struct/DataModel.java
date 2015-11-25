@@ -13,7 +13,8 @@ import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
 
-/**
+/** Class to read in dataset from excel file and generate
+ * the testing and training sets.
  * @author Justin
  *
  */
@@ -37,44 +38,69 @@ public class DataModel implements Serializable
 	private SplitMethod splitMethod;
 	private double percent;
 	private String excelPath;
-	private boolean normalized;
+	private boolean isNormalized;
 	
+	/** Constructor
+	 * @param excelPath The excel file that contains the data set.
+	 *
+	 */
 	public DataModel(String excelPath)
 	{
 		this.excelPath = excelPath;
 		this.trainingSet = null;
 		this.testingSet = null;
 		this.attributes = new ArrayList<String>();
-		attributesNotUsed = new ArrayList<String>();
+		this.attributesNotUsed = new ArrayList<String>();
 		this.splitMethod = SplitMethod.DataPercent;
 		this.percent = .5;
-		this.normalized=false;
-		allAttributes= new ArrayList<String>();
+		this.isNormalized = false;
+		this.allAttributes= new ArrayList<String>();
 	}
 	
+	/** Gets the path of the excel file.
+	 * @return
+	 */
 	public String GetExcelPath()
 	{
 		return excelPath;
 	}
+	
+	/** Sets whether data should be normalized in this data model.
+	 * @param b True to normalize, false to not normalize.
+	 */
 	public void SetNormalized(boolean b)
 	{
-		normalized = b;
+		isNormalized = b;
 	}
 	
+	/** Gets whether to normalize the data or not.
+	 * @return True if the data will be normalized, false if not.
+	 */
 	public boolean GetNormalized()
 	{
-		return normalized;
+		return isNormalized;
 	}
-	public void SetAttributes(ArrayList<String> attr,ArrayList<String>unused)
+	
+	/** Sets the attributes to use and the attributes that will not be used.
+	 * @param attr The attributes to use.
+	 * @param unused The attributes that will not be used.
+	 */
+	public void SetAttributes(ArrayList<String> attr, ArrayList<String>unused)
 	{
-		this.attributes=attr;
-		this.attributesNotUsed=unused;
+		this.attributes = attr;
+		this.attributesNotUsed = unused;
 	}
+	
+	/** Sets the split method and percent.
+	 * @param m The method to split the data into testing and training sets.
+	 * @param splitPercent A percent value that represents how much of the data the training set will be.
+	 */
 	public void SetSplitMethod(SplitMethod m, double splitPercent)
 	{
-		splitMethod=m;
-		percent=splitPercent;
+		this.splitMethod = m;
+		this.percent = splitPercent;
 	}
+	
 	/** Gets the training dataset
 	 * @return The training dataset.
 	 */
@@ -97,6 +123,33 @@ public class DataModel implements Serializable
 	public ArrayList<String> GetAttributes()
 	{
 		return allAttributes;
+	}
+	
+	/**
+	 * @return
+	 */
+	public String GetExcelFileName()
+	{
+		if(excelPath==null)return "";
+		if(excelPath.isEmpty())return "";
+		String split = excelPath.substring(excelPath.lastIndexOf('\\'),excelPath.lastIndexOf('.'));
+		return split.replace(' ', '_');
+	}
+	
+	/** Gets the split method used to separate data into testing and training sets.
+	 * @return
+	 */
+	public SplitMethod GetSplitMethod()
+	{
+		return splitMethod;
+	}
+	
+	/** Gets the percentage of the data that the training set will receive.
+	 * @return
+	 */
+	public int GetSplitPercent()
+	{
+		return (int)Math.floor(this.percent);
 	}
 	
 	/**
@@ -137,6 +190,7 @@ public class DataModel implements Serializable
 		}
 	}
 	
+	
 	/** Gets the actual data from the excel document.
 	 * @param useAttributes
 	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
@@ -168,19 +222,19 @@ public class DataModel implements Serializable
 				DataPoint p = new DataPoint();
 				for(int c = 0; c < col; c++)
 				{
-					// only add the attribute if it is one of the requested attributes.
-					if(c!=col-1)
+					// only add the attribute if it is one of the requested
+					// attributes.
+					if (c != col - 1) 
 					{
-					if (useAttributes.contains(this.allAttributes.get(c))) 
+						if (useAttributes.contains(this.allAttributes.get(c)))
+						{
+							p.addAttribute(this.allAttributes.get(c),
+									Double.parseDouble(sheet.getCell(c, r).getContents()));
+						}
+					} 
+					else 
 					{
-							p.addAttribute(this.allAttributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
-					}
-					}
-					else
-					{
-
-							p.setType(sheet.getCell(c, r).getContents());
-						
+						p.setType(sheet.getCell(c, r).getContents());
 					}
 				}
 				
@@ -192,11 +246,13 @@ public class DataModel implements Serializable
 			tempPoints = null;	
 		}
 	}
-	public void GetDataFromExcel(ArrayList<String> userAttributes,SplitMethod sm,int percent)throws BiffException, IOException
+	
+	public void GetDataFromExcel(ArrayList<String> userAttributes, SplitMethod sm, int percent)throws BiffException, IOException
 	{
 		SetPercent(percent);
-		GetDataFromExcel(userAttributes,sm,this.percent);
+		GetDataFromExcel(userAttributes, sm, this.percent);
 	}
+	
 	/** Gets the actual data from the excel document.
 	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
 	 * @param percent The percent of the data that the training set should receive.
@@ -243,7 +299,7 @@ public class DataModel implements Serializable
 	public void GetDataFromExcel()throws BiffException, IOException
 	{
 		GetDataFromExcel(this.attributes,this.splitMethod,this.percent);
-		if(this.normalized)
+		if(this.isNormalized)
 		{
 			this.NormailzeTestingSet();
 			this.NormalizeTrainingSet();
@@ -421,13 +477,6 @@ public class DataModel implements Serializable
 		return (value - min) / (max - min);
 	}
 	
-	public String GetExcelFileName()
-	{
-		if(excelPath==null)return "";
-		if(excelPath.isEmpty())return "";
-		String split = excelPath.substring(excelPath.lastIndexOf('\\'),excelPath.lastIndexOf('.'));
-		return split.replace(' ', '_');
-	}
 	public static void main(String[] args) throws BiffException, IOException
 	{
 		//String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -440,17 +489,5 @@ public class DataModel implements Serializable
 		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
 		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
 	}
-	
-	public SplitMethod GetSplitMethod()
-	{
-		return splitMethod;
-	}
-	
-	public int GetSplitPercent()
-	{
-		return (int)Math.floor(this.percent);
-	}
-	
-	
 	
 }

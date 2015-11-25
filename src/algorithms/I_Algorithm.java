@@ -34,7 +34,14 @@ public interface I_Algorithm extends Runnable   {
 	 */
 	boolean IsRunning();
 	
+	/** Gets the state of the algorithm
+	 * @return
+	 */
 	State GetState();
+	
+	/** Gets the data model being used by the algorithm.
+	 * @return
+	 */
 	DataModel GetDataModel();
 	
 	/** Gets the current clusters of the solution.
@@ -46,9 +53,19 @@ public interface I_Algorithm extends Runnable   {
 	 * Checks if the algorithm has reached its stoping condition.
 	 */
 	void CheckStoppingCondition();
+	
+	/** Gets the desired number of clusters for the algorithm.
+	 * @return The desired number of clusters.
+	 */
 	int GetDesiredClusters();
 
+	/** Gets the results for this algorithm.
+	 * @return
+	 */
 	Results GetResults();
+	
+	/** Gets the type of algorithm.
+	 * @return
+	 */
 	Algorithm GetType();
-
 }

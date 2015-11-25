@@ -37,12 +37,60 @@ public class K_Means implements I_Algorithm{
 	private DataSet set;
 	public DataModel model;
 	public double stoppingDistance;
-	State algState;
-	Results result;
+	private State algState;
+	private Results result;
+	
 	public K_Means()
 	{
 		isRunning = false;
 		this.isAborted = false;
+	}
+	
+	/** Sets the minimum distance that each iteration's centroids must be to stop
+	 * the algorithm.
+	 * @param dis The stopping distance.
+	 */
+	public void SetStoppingDistance(double dis)
+	{
+		this.stoppingDistance = dis;
+	}
+	
+	/** Gets the minimum stopping distance.
+	 * @return The minimum stopping distance.
+	 */
+	public double GetStoppingDistance()
+	{
+		return stoppingDistance;
+	}
+	
+	@Override
+	public Algorithm GetType()
+	{
+		return Algorithm.K_Means;
+	}
+	
+	@Override
+	public String toString()
+	{
+		return GetType().toString() + " " + model.GetExcelFileName();
+	}
+	public DataModel GetDataModel()
+	{
+		return model;
+	}
+	
+	@Override
+	public State GetState()
+	{
+		return algState;
+	}
+	
+	@Override
+	public Results GetResults()
+	{
+		if(!isRunning)
+			algState=State.Finished;
+		return result;
 	}
 
 	@Override
@@ -53,14 +101,12 @@ public class K_Means implements I_Algorithm{
 			this.model.GetDataFromExcel();
 		}
 		catch(Exception ex)
-		{
-			
-		}
-		this.set=model.GetTrainingSet();
+		{}
+		
+		this.set = model.GetTrainingSet();
 		if(set.GetDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
-
 			return;
 		}
 			
@@ -102,6 +148,7 @@ public class K_Means implements I_Algorithm{
 			algState = State.Analyzing;
 			//userGUI.CurrentSolution(this.clusters);
 			model.GetTrainingSet().SetIsPlotting(false);
+			
 			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)
 			{
@@ -125,21 +172,12 @@ public class K_Means implements I_Algorithm{
 	@Override
 	public void Set(DataModel set, int numClusters, UserGui_V2 ugui) {
 		
-		//if(set.GetTestingSet().GetDataSetSize() < numClusters)
-		//{
-		//	gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
-			//dataSet = null;
-		//	return;
-		//}
-		//dataSet = set;
 		this.numClusters = numClusters;
 		userGUI = ugui;
-		this.model=set;
+		this.model = set;
 		clusters = new ArrayList<Cluster>(this.numClusters);
 		algState = State.Idle;
 		result = null;
-		//pickInitCentroids(set.GetTestingSet());
-		//this.set = set.GetTestingSet();
 	}
 
 	@Override
@@ -305,14 +343,28 @@ public class K_Means implements I_Algorithm{
 		}
 	}
 	
-	public void SetStoppingDistance(double dis)
+	private void GenerateResult()
 	{
-		this.stoppingDistance=dis;
+		result = new Results();
+		result.alg = GetType();
+		result.clusters=new Cluster[this.numClusters];
+		result.clusters=clusters.toArray(result.clusters);
+		result.dataFileName=this.model.GetExcelFileName();
+		int clusterNum=1;
+		result.dataModel = model;
+		result.stoppingDistance = this.stoppingDistance;
+		result.fuzzyFactor=0.0;
+		result.output="";
+		result.desiredClusters=this.numClusters;
+		for (Cluster c : clusters)
+		{
+			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			clusterNum++;
+		}
+		result.Serialize();
 	}
-	public double GetStoppingDistance()
-	{
-		return stoppingDistance;
-	}
+	
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException
 	{
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -336,51 +388,4 @@ public class K_Means implements I_Algorithm{
 
 	}
 	
-	public Algorithm GetType()
-	{
-		return Algorithm.K_Means;
-	}
-	
-	public String toString()
-	{
-		return GetType().toString() + " " + model.GetExcelFileName();
-	}
-	public DataModel GetDataModel()
-	{
-		return model;
-	}
-	
-	public State GetState()
-	{
-		return algState;
-	}
-	
-	public Results GetResults()
-	{
-		if(!isRunning)
-			algState=State.Finished;
-		return result;
-	}
-	
-	private void GenerateResult()
-	{
-		result = new Results();
-		result.alg = GetType();
-		result.clusters=new Cluster[this.numClusters];
-		result.clusters=clusters.toArray(result.clusters);
-		result.dataFileName=this.model.GetExcelFileName();
-		int clusterNum=1;
-		result.dataModel = model;
-		result.stoppingDistance = this.stoppingDistance;
-		result.fuzzyFactor=0.0;
-		result.output="";
-		result.desiredClusters=this.numClusters;
-		for (Cluster c : clusters)
-		{
-			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
-			clusterNum++;
-		}
-		result.Serialize();
-	}
 }

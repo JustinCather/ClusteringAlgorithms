@@ -48,10 +48,15 @@ public class DataSet
 		points.add(p);
 	}
 	
+	
+	/** Removes the data point from the set.
+	 * @param index The index of the point to remove.
+	 */
 	public void RemoveDataPoint(int index)
 	{
 		points.remove(index);
 	}
+	
 	/** Gets a data point from the data set.
 	 * @param Index The index of the desired data point.
 	 * @return The datapoint if it exists, null if it does not.
