@@ -583,7 +583,10 @@ public class UserGui_V2 {
 						{
 							m.EnableSmoothing(Integer.parseInt(textFieldNumBins.getText()), comboBoxSmoothMethod.getItemAt(comboBoxSmoothMethod.getSelectedIndex()));
 						}
-						
+						else
+						{
+							m.DisableSmoothing();
+						}
 						
 						if (attributes.size() > 1) 
 						{		
