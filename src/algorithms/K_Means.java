@@ -2,14 +2,18 @@ package algorithms;
 
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+import javax.naming.spi.DirStateFactory.Result;
+
 import org.jfree.data.xy.XYDataset;
 
 import gui.UserGUI;
+import gui.UserGui_V2;
 import jxl.read.biff.BiffException;
 import plotting.ScatterPlotEmbedded;
 import plotting.ScatterPlotWindow;
@@ -17,20 +21,24 @@ import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
+import struct.Results;
 import utilities.Dice;
 import struct.DataModel.SplitMethod;
 
-public class K_Means implements I_Algorithm {
+public class K_Means implements I_Algorithm{
 	
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int numClusters;
-	private UserGUI userGUI;
+	private UserGui_V2 userGUI;
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
 	private DataSet set;
-	
+	public DataModel model;
+	public double stoppingDistance;
+	State algState;
+	Results result;
 	public K_Means()
 	{
 		isRunning = false;
@@ -39,6 +47,24 @@ public class K_Means implements I_Algorithm {
 
 	@Override
 	public void run()  {
+		algState = State.Initializing;
+		try
+		{
+			this.model.GetDataFromExcel();
+		}
+		catch(Exception ex)
+		{
+			
+		}
+		this.set=model.GetTrainingSet();
+		if(set.GetDataSetSize() < numClusters)
+		{
+			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
+
+			return;
+		}
+			
+		pickInitCentroids(set);
 		if (clusters == null)
 		{
 			gui.MessageBox.show("No data set.", "No dataset");
@@ -52,7 +78,7 @@ public class K_Means implements I_Algorithm {
 		else
 		{
 			isRunning = true;
-						
+			
 			int i = 0;		
 			while (isRunning && !isAborted)
 			{
@@ -60,7 +86,7 @@ public class K_Means implements I_Algorithm {
 				RecalcCentroids();
 				CheckStoppingCondition();			
 				
-				//dataSet.setIsPlotting(true);
+				model.GetTrainingSet().SetIsPlotting(true);
 				//userGUI.CurrentSolution(this.clusters);
 					
 				System.out.println(i + "th iteration...");
@@ -73,9 +99,9 @@ public class K_Means implements I_Algorithm {
 				//this.ResetPoints();	
 				i++;			
 			}
-			
-			userGUI.CurrentSolution(this.clusters);
-			
+			algState = State.Analyzing;
+			//userGUI.CurrentSolution(this.clusters);
+			model.GetTrainingSet().SetIsPlotting(false);
 			System.out.println("Results...");
 			for (int x = 0; x < clusters.size(); x++)
 			{
@@ -85,7 +111,8 @@ public class K_Means implements I_Algorithm {
 			}
 		}
 		
-		this.userGUI.SetAlgorithmFinished();
+		this.GenerateResult();
+		//this.userGUI.SetAlgorithmFinished();
 		this.isRunning = false;
 	}
 	
@@ -96,19 +123,23 @@ public class K_Means implements I_Algorithm {
 	}
 
 	@Override
-	public void Set(DataSet set, int numClusters, UserGUI ugui) {
+	public void Set(DataModel set, int numClusters, UserGui_V2 ugui) {
 		
-		if(set.GetDataSetSize() < numClusters)
-		{
-			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
+		//if(set.GetTestingSet().GetDataSetSize() < numClusters)
+		//{
+		//	gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
 			//dataSet = null;
-			return;
-		}
+		//	return;
+		//}
 		//dataSet = set;
 		this.numClusters = numClusters;
 		userGUI = ugui;
-		pickInitCentroids(set);
-		this.set = set;
+		this.model=set;
+		clusters = new ArrayList<Cluster>(this.numClusters);
+		algState = State.Idle;
+		result = null;
+		//pickInitCentroids(set.GetTestingSet());
+		//this.set = set.GetTestingSet();
 	}
 
 	@Override
@@ -121,6 +152,10 @@ public class K_Means implements I_Algorithm {
 		return this.clusters;
 	}
 
+	public int GetDesiredClusters()
+	{
+		return numClusters;
+	}
 	@Override
 	public void CheckStoppingCondition() {
 		boolean isSame = true;
@@ -132,7 +167,7 @@ public class K_Means implements I_Algorithm {
 			{
 				for (int j = 0; j < attr.length; j++) 
 				{
-					if ((crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>.00001) 
+					if ((crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>stoppingDistance) 
 					{
 						isSame = false;
 						break;
@@ -270,7 +305,14 @@ public class K_Means implements I_Algorithm {
 		}
 	}
 	
-	
+	public void SetStoppingDistance(double dis)
+	{
+		this.stoppingDistance=dis;
+	}
+	public double GetStoppingDistance()
+	{
+		return stoppingDistance;
+	}
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException
 	{
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -281,7 +323,7 @@ public class K_Means implements I_Algorithm {
 		Cluster.SetAttributeNames(winning.GetAttributes());
 		I_Algorithm k = new K_Means();
 		
-		k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
+		//k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
 		//k.Start();
 		
 		String x = winning.GetAttributes().get(0);
@@ -292,5 +334,53 @@ public class K_Means implements I_Algorithm {
 		plot.pack();
 		plot.setVisible(true);
 
+	}
+	
+	public Algorithm GetType()
+	{
+		return Algorithm.K_Means;
+	}
+	
+	public String toString()
+	{
+		return GetType().toString() + " " + model.GetExcelFileName();
+	}
+	public DataModel GetDataModel()
+	{
+		return model;
+	}
+	
+	public State GetState()
+	{
+		return algState;
+	}
+	
+	public Results GetResults()
+	{
+		if(!isRunning)
+			algState=State.Finished;
+		return result;
+	}
+	
+	private void GenerateResult()
+	{
+		result = new Results();
+		result.alg = GetType();
+		result.clusters=new Cluster[this.numClusters];
+		result.clusters=clusters.toArray(result.clusters);
+		result.dataFileName=this.model.GetExcelFileName();
+		int clusterNum=1;
+		result.dataModel = model;
+		result.stoppingDistance = this.stoppingDistance;
+		result.fuzzyFactor=0.0;
+		result.output="";
+		result.desiredClusters=this.numClusters;
+		for (Cluster c : clusters)
+		{
+			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			clusterNum++;
+		}
+		result.Serialize();
 	}
 }

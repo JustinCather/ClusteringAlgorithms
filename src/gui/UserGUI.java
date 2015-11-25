@@ -16,6 +16,7 @@ import java.util.List;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -34,6 +35,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.NumberFormatter;
+import javax.swing.tree.DefaultMutableTreeNode;
 
 import algorithms.Algorithm;
 import algorithms.FuzzyClustering;
@@ -46,11 +48,16 @@ import struct.Cluster;
 import struct.DataModel;
 import struct.DataModel.SplitMethod;
 import struct.DataSet;
+import struct.Results;
+
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.JTextArea;
 import javax.swing.JCheckBox;
 import javax.swing.JTabbedPane;
+import javax.swing.JTree;
+import java.awt.Component;
+import javax.swing.Box;
 
 public class UserGUI {
 	
@@ -114,6 +121,22 @@ public class UserGUI {
 	public void SetAlgorithmFinished()
 	{
 		this.lblStatus.setText("Ready");
+		Results s = new Results();
+		s.alg = this.algorithm.GetType();
+		s.clusters=new Cluster[this.algorithm.CurrentSolution().size()];
+		s.clusters=this.algorithm.CurrentSolution().toArray(s.clusters);
+		s.dataFileName=this.dataModel.GetExcelFileName();
+		int clusterNum=1;
+		s.output="";
+		for (Cluster c : s.clusters)
+		{
+			s.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			s.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			this.resultsTextPane.insert("Cluster " + clusterNum + "\n" + c.ClusterStats(), 0);
+			this.resultsTextPane.insert("Gini = " + c.CaclGiniIndex() + "\n", 0);
+			clusterNum++;
+		}
+		s.Serialize();
 	}
 	
 	/** Update the the output window and the graph for the GUI.
@@ -167,12 +190,12 @@ public class UserGUI {
 		frmClusteringAlgorithms = new JFrame();
 		frmClusteringAlgorithms.setTitle("Clustering Algorithms");
 		frmClusteringAlgorithms.setResizable(false);
-		frmClusteringAlgorithms.setBounds(100, 100, 1075, 645);
+		frmClusteringAlgorithms.setBounds(100, 100, 1198, 820);
 		frmClusteringAlgorithms.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClusteringAlgorithms.getContentPane().setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 0, 1059, 605);
+		tabbedPane.setBounds(157, 106, 1036, 622);
 		frmClusteringAlgorithms.getContentPane().add(tabbedPane);
 		
 		JPanel trainingSetupPanel = new JPanel();
@@ -180,7 +203,7 @@ public class UserGUI {
 		trainingSetupPanel.setLayout(null);
 		
 		JPanel configPanel = new JPanel();
-		configPanel.setBounds(10, 11, 529, 491);
+		configPanel.setBounds(10, 0, 529, 491);
 		trainingSetupPanel.add(configPanel);
 		configPanel.setBorder(new TitledBorder(null, "Configuration", TitledBorder.LEFT, TitledBorder.TOP, null, null));
 		configPanel.setLayout(null);
@@ -379,6 +402,43 @@ public class UserGUI {
 		JPanel testingPanel = new JPanel();
 		tabbedPane.addTab("Testing", null, testingPanel, null);
 		
+		DefaultMutableTreeNode root = new DefaultMutableTreeNode("Clustering");
+		JTree tree = new JTree(root);
+		tree.setBounds(10, 111, 137, 188);
+		DefaultMutableTreeNode subCat = new DefaultMutableTreeNode("Data Set");
+		root.add(subCat);
+		subCat = new DefaultMutableTreeNode("Algorithm");
+		root.add(subCat);
+		subCat = new DefaultMutableTreeNode("Results");
+		root.add(subCat);
+		subCat = new DefaultMutableTreeNode("Graphs");
+		root.add(subCat);
+		
+		frmClusteringAlgorithms.getContentPane().add(tree);
+		
+		Component horizontalStrut = Box.createHorizontalStrut(20);
+		horizontalStrut.setBounds(10, 94, 995, -6);
+		frmClusteringAlgorithms.getContentPane().add(horizontalStrut);
+		
+		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
+		horizontalStrut_1.setBounds(0, 87, 1089, 30);
+		frmClusteringAlgorithms.getContentPane().add(horizontalStrut_1);
+		
+		JPanel image = new JPanel();
+		JLabel imgLabel = new JLabel(new ImageIcon("C:\\Users\\Chris\\Documents\\DataMining\\ClusteringAlgorithms\\Chris\\src\\gui\\cooltext149771592562968.png"));
+		image.add(imgLabel);
+		image.setBounds(0, 0, 440, 95);
+		frmClusteringAlgorithms.getContentPane().add(image);
+		
+		JList list = new JList();
+		list.setBounds(909, 79, -236, -67);
+		frmClusteringAlgorithms.getContentPane().add(list);
+		
+		JList list_1 = new JList();
+		list_1.setBounds(683, 11, 386, 84);
+		frmClusteringAlgorithms.getContentPane().add(list_1);
+		tree.expandRow(0);
+		
 		//////////////////////////////////////////////////////////////////////////
 		////////////////////////////////EVENTS////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////
@@ -540,7 +600,7 @@ public class UserGUI {
 					}
 					
 					
-					this.algorithm.Set(this.dataModel.GetTrainingSet(), numberOfClusters, this);
+					this.algorithm.Set(this.dataModel, numberOfClusters, this);
 					
 					background = new Thread(algorithm);
 					background.start();

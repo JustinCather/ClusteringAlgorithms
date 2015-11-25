@@ -1,6 +1,7 @@
 package struct;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -9,7 +10,7 @@ import java.util.Map.Entry;
 import jxl.read.biff.BiffException;
 import struct.DataModel.SplitMethod;
 
-public class Cluster 
+public class Cluster implements Serializable
 {
 	private static ArrayList<String> ATTRIBUTE_NAMES;
 	private LinkedList<DataPoint> dataPoints;

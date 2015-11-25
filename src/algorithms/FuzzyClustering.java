@@ -1,14 +1,18 @@
 package algorithms;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
 import gui.MessageBox;
 import gui.UserGUI;
+import gui.UserGui_V2;
 import struct.Cluster;
+import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
+import struct.Results;
 
 public class FuzzyClustering implements I_Algorithm {
 
@@ -16,12 +20,17 @@ public class FuzzyClustering implements I_Algorithm {
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGUI userGUI;
+	private UserGui_V2 userGUI;
 
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private LinkedList<double[]> fuzzyMatrix;
 	private double fuzzynessFactor;
+	private DataModel model;
+	private double stoppingDistance;
+	private State algState;
+	private Results result;
+	private ArrayList<Cluster> current;
 	public FuzzyClustering() 
 	{
 		this.isRunning = false;
@@ -29,21 +38,27 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 	@Override
 	public void run() {
-		if (set == null)
-		{
-			gui.MessageBox.show("No data set.", "No dataset");
-			return;
-		}
-		else if(set.GetDataSetSize()==0)
-		{
-			gui.MessageBox.show("No data set.", "No dataset");
-			return;
-		}
-		else
-		{
+			current = new ArrayList<Cluster>();
+			algState = State.Initializing;
 			isRunning = true;
+			try
+			{
+				this.model.GetDataFromExcel();
+			}
+			catch(Exception ex)
+			{
+				
+			}
+			this.set=model.GetTrainingSet();
+			pickInitCentroids(set);
 			
+			this.fuzzyMatrix = new LinkedList<double[]>();
+			for(int i=0;i<set.GetDataSetSize();i++)
+			{
+				fuzzyMatrix.add(new double[this.desiredClusterNumber]);
+			}
 			int it=1;
+			algState = State.Running;
 			while (isRunning && !isAborted)
 			{
 				System.out.println("Iteration " +it);
@@ -56,6 +71,7 @@ public class FuzzyClustering implements I_Algorithm {
 				CheckStoppingCondition();	
 			}
 			
+			algState = State.Analyzing;
 			ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 			for(int i =0; i< this.desiredClusterNumber; i++)
 				clusters.add(new Cluster(i));
@@ -75,6 +91,7 @@ public class FuzzyClustering implements I_Algorithm {
 				}
 				clusters.get(clusterNumber).AddDataPoint(temp);
 			}
+			model.GetTrainingSet().SetIsPlotting(true);
 			userGUI.CurrentSolution(clusters);
 			
 			System.out.println("Results...");
@@ -84,11 +101,16 @@ public class FuzzyClustering implements I_Algorithm {
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
 			}
+			current = clusters;
+			algState=State.Analyzing;
+			GenerateResult();
+			//this.userGUI.SetAlgorithmFinished();
+			
 			
 			isRunning = false;
 		}
 
-	}
+
 	
 	@Override
 	public void Stop()
@@ -97,26 +119,20 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 
 	@Override
-	public void Set(DataSet set, int numClusters, UserGUI gui) {
-		if(set.GetDataSetSize() < numClusters)
-		{
-			MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
-			//dataSet = null;
-			return;
-		}
+	public void Set(DataModel set, int numClusters, UserGui_V2 gui) {
+		
 		//dataSet = set;
 		this.desiredClusterNumber = numClusters;
 		userGUI = gui;
-		pickInitCentroids(set);
-		this.set = set;
-		this.fuzzyMatrix = new LinkedList<double[]>();
-		for(int i=0;i<set.GetDataSetSize();i++)
-		{
-			fuzzyMatrix.add(new double[numClusters]);
-		}
+		this.model = set;
 		fuzzynessFactor = 3;
+		algState = State.Idle;
 	}
 
+	public int GetDesiredClusters()
+	{
+		return desiredClusterNumber;
+	}
 	@Override
 	public boolean IsRunning() {
 		return this.isRunning;
@@ -124,8 +140,7 @@ public class FuzzyClustering implements I_Algorithm {
 
 	@Override
 	public ArrayList<Cluster> CurrentSolution() {
-		// TODO Auto-generated method stub
-		return null;
+		return current;
 	}
 
 	@Override
@@ -139,7 +154,7 @@ public class FuzzyClustering implements I_Algorithm {
 			{
 				for (int j = 0; j < attr.length; j++) 
 				{
-					if (Math.abs(crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>.0001) 
+					if (Math.abs(crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>stoppingDistance) 
 					{
 						isSame = false;
 						break;
@@ -252,5 +267,67 @@ public class FuzzyClustering implements I_Algorithm {
 				}
 			}
 		}
+	}
+	
+	public void SetStoppingDistance(double dis)
+	{
+		this.stoppingDistance=dis;
+	}
+	public double GetStoppingDistance()
+	{
+		return stoppingDistance;
+	}
+	public void SetFuzzyFactor(double fuz)
+	{
+		this.fuzzynessFactor=fuz;
+	}
+	public double GetFuzzyFactor()
+	{
+		return fuzzynessFactor;
+	}
+	public Algorithm GetType()
+	{
+		return Algorithm.FuzzyLogic;
+	}
+	public String toString()
+	{
+		return GetType().toString() + " " + model.GetExcelFileName();
+	}
+	public DataModel GetDataModel()
+	{
+		return model;
+	}
+	
+	public State GetState()
+	{
+		return algState;
+	}
+	
+	public Results GetResults()
+	{
+		if(!isRunning)
+			algState = State.Finished;
+		return result;
+	}
+	private void GenerateResult()
+	{
+		result = new Results();
+		result.alg = GetType();
+		result.clusters=new Cluster[this.desiredClusterNumber];
+		result.clusters=current.toArray(result.clusters);
+		result.dataFileName=this.model.GetExcelFileName();
+		int clusterNum=1;
+		result.dataModel = model;
+		result.stoppingDistance = this.stoppingDistance;
+		result.fuzzyFactor=this.fuzzynessFactor;
+		result.desiredClusters=this.desiredClusterNumber;
+		result.output="";
+		for (Cluster c : current)
+		{
+			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			clusterNum++;
+		}
+		result.Serialize();
 	}
 }

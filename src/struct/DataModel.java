@@ -2,6 +2,7 @@ package struct;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -16,7 +17,7 @@ import jxl.read.biff.BiffException;
  * @author Justin
  *
  */
-public class DataModel 
+public class DataModel implements Serializable
 {
 	class IntPair
 	{
@@ -28,12 +29,15 @@ public class DataModel
 	
 	public enum SplitMethod{ClassPercent, DataPercent, RandomPercent, EveryOther };
 	
-	private DataSet trainingSet;
-	private DataSet testingSet;
-	private ArrayList<String> attributes;
+	private transient DataSet trainingSet;
+	private transient DataSet testingSet;
+	public ArrayList<String> attributes;
+	public ArrayList<String> attributesNotUsed;
+	private transient ArrayList<String> allAttributes;
 	private SplitMethod splitMethod;
 	private double percent;
 	private String excelPath;
+	private boolean normalized;
 	
 	public DataModel(String excelPath)
 	{
@@ -41,10 +45,36 @@ public class DataModel
 		this.trainingSet = null;
 		this.testingSet = null;
 		this.attributes = new ArrayList<String>();
+		attributesNotUsed = new ArrayList<String>();
 		this.splitMethod = SplitMethod.DataPercent;
 		this.percent = .5;
+		this.normalized=false;
+		allAttributes= new ArrayList<String>();
 	}
 	
+	public String GetExcelPath()
+	{
+		return excelPath;
+	}
+	public void SetNormalized(boolean b)
+	{
+		normalized = b;
+	}
+	
+	public boolean GetNormalized()
+	{
+		return normalized;
+	}
+	public void SetAttributes(ArrayList<String> attr,ArrayList<String>unused)
+	{
+		this.attributes=attr;
+		this.attributesNotUsed=unused;
+	}
+	public void SetSplitMethod(SplitMethod m, double splitPercent)
+	{
+		splitMethod=m;
+		percent=splitPercent;
+	}
 	/** Gets the training dataset
 	 * @return The training dataset.
 	 */
@@ -66,7 +96,7 @@ public class DataModel
 	 */
 	public ArrayList<String> GetAttributes()
 	{
-		return attributes;
+		return allAttributes;
 	}
 	
 	/**
@@ -114,13 +144,12 @@ public class DataModel
 	 * @throws BiffException
 	 * @throws IOException
 	 */
-	public void GetDataFromExcel(ArrayList<String> useAttributes, SplitMethod sm, int percent) throws BiffException, IOException
+	public void GetDataFromExcel(ArrayList<String> useAttributes, SplitMethod sm, double percent) throws BiffException, IOException
 	{
 		if (useAttributes != null)
 		{
 			LinkedList<DataPoint> tempPoints = new LinkedList<DataPoint>();
 			this.splitMethod = sm;
-			this.SetPercent(percent);
 			this.trainingSet = new DataSet();
 			this.testingSet = new DataSet();
 			
@@ -140,12 +169,18 @@ public class DataModel
 				for(int c = 0; c < col; c++)
 				{
 					// only add the attribute if it is one of the requested attributes.
-					if (useAttributes.contains(this.attributes.get(c))) 
+					if(c!=col-1)
 					{
-						if (c != col - 1)
-							p.addAttribute(this.attributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
-						else
+					if (useAttributes.contains(this.allAttributes.get(c))) 
+					{
+							p.addAttribute(this.allAttributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
+					}
+					}
+					else
+					{
+
 							p.setType(sheet.getCell(c, r).getContents());
+						
 					}
 				}
 				
@@ -157,7 +192,11 @@ public class DataModel
 			tempPoints = null;	
 		}
 	}
-	
+	public void GetDataFromExcel(ArrayList<String> userAttributes,SplitMethod sm,int percent)throws BiffException, IOException
+	{
+		SetPercent(percent);
+		GetDataFromExcel(userAttributes,sm,this.percent);
+	}
 	/** Gets the actual data from the excel document.
 	 * @param sm The SplitMethod to use when dividing the data between the testing and training sets.
 	 * @param percent The percent of the data that the training set should receive.
@@ -201,6 +240,16 @@ public class DataModel
 		tempPoints = null;
 	}
 	
+	public void GetDataFromExcel()throws BiffException, IOException
+	{
+		GetDataFromExcel(this.attributes,this.splitMethod,this.percent);
+		if(this.normalized)
+		{
+			this.NormailzeTestingSet();
+			this.NormalizeTrainingSet();
+		}
+	}
+	
 	/** Gets the attributes for the classes from the defined excel file.
 	 * @throws BiffException
 	 * @throws IOException
@@ -214,7 +263,7 @@ public class DataModel
 		// Getting attributes from file.
 		for (int i = 0; i < col - 1; i++)
 		{
-			this.attributes.add(sheet.getCell(i, 0).getContents());
+			this.allAttributes.add(sheet.getCell(i, 0).getContents());
 		}
 	}
 	
@@ -372,6 +421,13 @@ public class DataModel
 		return (value - min) / (max - min);
 	}
 	
+	public String GetExcelFileName()
+	{
+		if(excelPath==null)return "";
+		if(excelPath.isEmpty())return "";
+		String split = excelPath.substring(excelPath.lastIndexOf('\\'),excelPath.lastIndexOf('.'));
+		return split.replace(' ', '_');
+	}
 	public static void main(String[] args) throws BiffException, IOException
 	{
 		//String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -384,4 +440,17 @@ public class DataModel
 		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
 		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
 	}
+	
+	public SplitMethod GetSplitMethod()
+	{
+		return splitMethod;
+	}
+	
+	public int GetSplitPercent()
+	{
+		return (int)Math.floor(this.percent);
+	}
+	
+	
+	
 }

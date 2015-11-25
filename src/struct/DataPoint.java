@@ -1,9 +1,10 @@
 package struct;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-public class DataPoint {
+public class DataPoint implements Serializable{
 	
 	private HashMap<String, Double> point;
 	private String type;

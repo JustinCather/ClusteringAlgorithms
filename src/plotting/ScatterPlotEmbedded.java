@@ -82,4 +82,26 @@ public class ScatterPlotEmbedded
 
         return chartPanel;
 	}
+	public ChartPanel DrawChart()
+	{
+		XYSeriesCollection temp = new XYSeriesCollection();
+		JFreeChart chart = ChartFactory.createScatterPlot(
+	            "Visual Literacy",
+	            "", "", 
+	            temp, 
+	            PlotOrientation.VERTICAL,
+	            true, 
+	            true, 
+	            false
+	        );
+		
+        NumberAxis domainAxis = (NumberAxis) chart.getXYPlot().getDomainAxis();
+        domainAxis.setAutoRangeIncludesZero(false);
+        ChartPanel chartPanel = new ChartPanel(chart);
+        chartPanel.setPreferredSize(new java.awt.Dimension(500, 270));
+        chartPanel.setVerticalAxisTrace(true);
+        chartPanel.setHorizontalAxisTrace(true);
+
+        return chartPanel;
+	}
 }

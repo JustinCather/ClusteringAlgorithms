@@ -1,12 +1,14 @@
 package algorithms;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 
 import org.jfree.data.xy.XYDataset;
 
 import gui.MessageBox;
 import gui.UserGUI;
+import gui.UserGui_V2;
 import jxl.read.biff.BiffException;
 import plotting.ScatterPlotEmbedded;
 import plotting.ScatterPlotWindow;
@@ -15,17 +17,20 @@ import struct.DataModel;
 import struct.DataModel.SplitMethod;
 import struct.DataPoint;
 import struct.DataSet;
+import struct.Results;
 import utilities.Dice;
 
-public class Hierarchical implements I_Algorithm 
+public class Hierarchical implements I_Algorithm
 {
 	//private DataSet dataSet;
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGUI userGUI;
+	private UserGui_V2 userGUI;
 	private ArrayList<Cluster> clusters;
-	
+	private DataModel model;
+	private State algState;
+	private Results result;
 	public Hierarchical() 
 	{
 		this.isRunning = false;
@@ -35,8 +40,27 @@ public class Hierarchical implements I_Algorithm
 	@Override
 	public void run() 
 	{
+		algState = State.Initializing;
 		this.isRunning = true;
+		try
+		{
+			this.model.GetDataFromExcel();
+		}
+		catch(Exception ex)
+		{
+			
+			
+		}
+		this.clusters = new ArrayList<Cluster>(model.GetTrainingSet().GetDataSetSize());
 		
+		for (int i = 0; i < model.GetTrainingSet().GetDataSetSize(); i++)
+		{
+			Cluster temp = new Cluster(i);
+			temp.AddDataPoint(model.GetTrainingSet().GetPoint(i));
+			temp.RecalculateCentroid();
+			this.clusters.add(temp);
+		}
+		algState = State.Running;
 		while(isRunning && !isAborted)
 		{				
 			// Assign the points in the data set to a cluster.
@@ -51,21 +75,24 @@ public class Hierarchical implements I_Algorithm
 			
 			// Check if algorithm reached the desired number of clusters.
 			this.CheckStoppingCondition();
-			
+			model.GetTrainingSet().SetIsPlotting(true);
 			userGUI.CurrentSolution(this.clusters);		
 			
 		}
 		
-		
+		algState = State.Analyzing;
 		System.out.println("Results...");
 		for (int x = 0; x < clusters.size(); x++)
 		{
 			clusters.get(x).SetClusterType();
 			System.out.println("Cluster " + clusters.get(x).GetClusterID());
 			System.out.println(clusters.get(x).ClusterStats());
-		}	
+		}
+		algState=State.Analyzing;
+		GenerateResult();
 		
-		this.userGUI.SetAlgorithmFinished();
+		//this.userGUI.SetAlgorithmFinished();
+
 		this.isRunning = false;
 	}
 	
@@ -76,31 +103,32 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public void Set(DataSet set, int numClusters, UserGUI gui) 
+	public void Set(DataModel set, int numClusters, UserGui_V2 gui) 
 	{
 		// Need a bigger data set than number of clusters.
-		if(set.GetDataSetSize() < numClusters)
-		{
-			MessageBox.show("You have entered more clusters than available points!", "ERROR");
-			//this.dataSet = null;
-		}
-		else
-		{
+//		if(set.GetTestingSet().GetDataSetSize() < numClusters)
+//		{
+//			MessageBox.show("You have entered more clusters than available points!", "ERROR");
+//			//this.dataSet = null;
+//		}
+//		else
+//		{
 			//this.dataSet = set;
 			this.desiredClusterNumber = numClusters;
 			this.userGUI = gui;
-			
+			model = set;
+			algState = State.Idle;
 			// Each data point is its own cluster initially.
-			this.clusters = new ArrayList<Cluster>(set.GetDataSetSize());
+			//this.clusters = new ArrayList<Cluster>(set.GetTestingSet().GetDataSetSize());
 			
-			for (int i = 0; i < set.GetDataSetSize(); i++)
-			{
-				Cluster temp = new Cluster(i);
-				temp.AddDataPoint(set.GetPoint(i));
-				temp.RecalculateCentroid();
-				this.clusters.add(temp);
-			}
-		}
+			//for (int i = 0; i < set.GetTestingSet().GetDataSetSize(); i++)
+			//{
+				//Cluster temp = new Cluster(i);
+				//temp.AddDataPoint(set.GetTestingSet().GetPoint(i));
+				//temp.RecalculateCentroid();
+				//this.clusters.add(temp);
+			//}
+		//}
 	}
 
 	@Override
@@ -115,6 +143,10 @@ public class Hierarchical implements I_Algorithm
 		return this.clusters;
 	}
 
+	public int GetDesiredClusters()
+	{
+		return desiredClusterNumber;
+	}
 	@Override
 	public void CheckStoppingCondition() 
 	{
@@ -302,10 +334,55 @@ public class Hierarchical implements I_Algorithm
 		Cluster.SetAttributeNames(winning.GetAttributes());
 		Hierarchical h = new Hierarchical();
 		
-		h.Set(winning.GetTrainingSet(), clusters, new UserGUI());			
+		//h.Set(winning.GetTrainingSet(), clusters, new UserGUI());			
 
 		Thread t = new Thread(h);
 		t.start();
 	}
+	public String toString()
+	{
+		return GetType().toString() + " " + model.GetExcelFileName();
+	}
+	public Algorithm GetType()
+	{
+		return Algorithm.Hierarchical;
+	}
 
+	public DataModel GetDataModel()
+	{
+		return model;
+	}
+	public State GetState()
+	{
+		return algState;
+	}
+	
+	public Results GetResults()
+	{
+		if(!isRunning)
+			algState=State.Finished;
+		return result;
+	}
+	private void GenerateResult()
+	{
+		result = new Results();
+		result.alg = GetType();
+		result.clusters=new Cluster[this.desiredClusterNumber];
+		result.clusters=clusters.toArray(result.clusters);
+		result.dataFileName=this.model.GetExcelFileName();
+		int clusterNum=1;
+		result.dataModel = model;
+		result.stoppingDistance = 0.0;
+		result.fuzzyFactor=0.0;
+		result.output="";
+		result.desiredClusters=this.desiredClusterNumber;
+		for (Cluster c : clusters)
+		{
+			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			clusterNum++;
+		}
+		result.Serialize();
+	}
+	
 }
