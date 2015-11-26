@@ -597,11 +597,7 @@ public class UserGui_V2 {
 						else
 						{
 							m.DisableSmoothing();
-<<<<<<< HEAD
 						}		
-=======
-						}
->>>>>>> origin/master
 						
 						if (attributes.size() > 1) 
 						{		
