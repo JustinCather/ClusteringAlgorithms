@@ -132,10 +132,10 @@ public class DataModel implements Serializable
 	 * @param m The method to split the data into testing and training sets.
 	 * @param splitPercent A percent value that represents how much of the data the training set will be.
 	 */
-	public void SetSplitMethod(SplitMethod m, double splitPercent)
+	public void SetSplitMethod(SplitMethod m, int splitPercent)
 	{
 		this.splitMethod = m;
-		this.percent = splitPercent;
+		this.SetPercent(splitPercent);
 	}
 	
 	/** Gets the training dataset
@@ -507,7 +507,8 @@ public class DataModel implements Serializable
 		//DataModel test = DataModel.CreateFromExcel(path, SplitMethod.RandomPercent, 99);
 		DataModel test = new DataModel(path);
 		test.GetAttributesFromExcel();
-		test.GetDataFromExcel(SplitMethod.ClassPercent, 50);
+		//test.GetDataFromExcel(SplitMethod.ClassPercent, 50);
+		test.GetDataFromExcel(test.GetAllAttributes(), SplitMethod.ClassPercent, 50);
 		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
 		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
 	}
