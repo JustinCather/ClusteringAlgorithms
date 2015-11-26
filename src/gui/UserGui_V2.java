@@ -80,6 +80,7 @@ public class UserGui_V2 {
 	private DataModel dataModel;
 	private ScatterPlotEmbedded plot;
 
+	private TestingPanel testingPanel;
 	private UserGui_V2 passable;
 	private JFormattedTextField textFieldNumBins;
 	private JCheckBox chckbxSmooth;
@@ -197,6 +198,7 @@ public class UserGui_V2 {
 		        DataSet.setVisible(false);
 		        Results.setVisible(false);
 		        Graph.setVisible(false);
+		        testingPanel.setVisible(false);
 		        if(node.toString().equals("Data Set"))
 		        {
 		        	DataSet.setVisible(true);
@@ -213,6 +215,10 @@ public class UserGui_V2 {
 		        {
 		        	Results.setVisible(true);
 		        }
+		        if (node.toString().equals("Testing"))
+		        {
+		        	testingPanel.setVisible(true);
+		        }
 		    /* retrieve the node that was selected */ 
 		        Object nodeInfo = node.getUserObject();
 		      //  ...
@@ -226,8 +232,10 @@ public class UserGui_V2 {
 		subCat = new DefaultMutableTreeNode("Algorithm");
 		root.add(subCat);
 		subCat = new DefaultMutableTreeNode("Results");
-		root.add(subCat);
+		root.add(subCat);	
 		subCat = new DefaultMutableTreeNode("Graphs");
+		root.add(subCat);
+		subCat = new DefaultMutableTreeNode("Testing");
 		root.add(subCat);
 		
 		Results = new JPanel();
@@ -457,6 +465,11 @@ public class UserGui_V2 {
 				}
 			}
 		});
+		
+		testingPanel = new TestingPanel();
+		testingPanel.setBounds(154, 114, 739, 370);
+		frmClusteringAlgorithms.getContentPane().add(testingPanel);
+		testingPanel.setVisible(false);
 		Algorthim.setBounds(154, 114, 337, 164);
 		frmClusteringAlgorithms.getContentPane().add(Algorthim);
 		Algorthim.setLayout(null);
@@ -565,9 +578,7 @@ public class UserGui_V2 {
 						Algorithm algorithmType = algorithmComboBox.getItemAt(algorithmComboBox.getSelectedIndex());
 					
 					try 
-					{
-						//dataModel.GetDataFromExcel(splitMethod, trainingPercent);
-						
+					{			
 						// Check normalize.
 						if (chckbxNormalizeData.isSelected())
 						{
@@ -583,7 +594,10 @@ public class UserGui_V2 {
 						{
 							m.EnableSmoothing(Integer.parseInt(textFieldNumBins.getText()), comboBoxSmoothMethod.getItemAt(comboBoxSmoothMethod.getSelectedIndex()));
 						}
-						
+						else
+						{
+							m.DisableSmoothing();
+						}		
 						
 						if (attributes.size() > 1) 
 						{		
@@ -918,6 +932,7 @@ public class UserGui_V2 {
 				selectedFile = fileChooser.getSelectedFile();
 				Results s = struct.Results.Deserialize(selectedFile.getAbsolutePath());
 				f=s;
+				testingPanel.SetResult(f);
 				resultsTextPane.setText(s.output);
 				Algorithm a = s.alg;//.GetType();
 				 algorithmComboBox.setSelectedItem(a);
@@ -991,6 +1006,7 @@ public class UserGui_V2 {
 	private void LoadGraphsAndResults(Results s)
 	{
 			f=s;
+			testingPanel.SetResult(s);
 			xComboBox.removeAllItems();
 			yComboBox.removeAllItems();
 			for (String sz : s.dataModel.GetUsedAttributes())
