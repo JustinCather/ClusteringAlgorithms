@@ -49,19 +49,25 @@ public class ScatterPlotEmbedded
 	{
 		XYSeriesCollection temp = new XYSeriesCollection();
 		int count = 1;
-		
+		XYSeries centers = new XYSeries("Centroids");
+		temp.addSeries(centers);
 		for (Cluster c : clusters)
 		{
+			if(c==null)continue;
+			centers.add(c.GetCentroid().getAttribute(this.x),c.GetCentroid().getAttribute(this.y));
 			XYSeries series = new XYSeries("Cluster" + count);
 			count++;
 			
 			for (int i = 0; i < c.GetDataPoints().size(); i++)
 			{
+				
 				series.add(c.GetDataPoints().get(i).getAttribute(this.x), c.GetDataPoints().get(i).getAttribute(this.y));
 			}
 			
 			temp.addSeries(series);
 		}
+		
+		
 	
 		JFreeChart chart = ChartFactory.createScatterPlot(
 	            "Visual Literacy",

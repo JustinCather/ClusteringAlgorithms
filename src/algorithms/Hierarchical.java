@@ -3,6 +3,7 @@ package algorithms;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.jfree.data.xy.XYDataset;
 
@@ -31,7 +32,7 @@ public class Hierarchical implements I_Algorithm
 	private DataModel model;
 	private State algState;
 	private Results result;
-	
+	private transient double sse,validity;
 	public Hierarchical() 
 	{
 		this.isRunning = false;
@@ -87,8 +88,10 @@ public class Hierarchical implements I_Algorithm
 				temp.AddDataPoint(model.GetTrainingSet().GetPoint(i));
 				temp.RecalculateCentroid();
 				this.clusters.add(temp);
+				clusters.get(i).SetAttributeNames(new ArrayList<String>(Arrays.asList(model.GetTrainingSet().GetPoint(i).GetAttributeNames())));
 			}
 			
+
 			algState = State.Running;
 			while(isRunning && !isAborted)
 			{				
@@ -103,7 +106,8 @@ public class Hierarchical implements I_Algorithm
 				}
 				
 				// Check if algorithm reached the desired number of clusters.
-				this.CheckStoppingCondition();
+				boolean done =this.CheckStoppingCondition();
+				if(done)break;
 				model.GetTrainingSet().SetIsPlotting(true);
 				userGUI.CurrentSolution(this.clusters);		
 				
@@ -111,14 +115,20 @@ public class Hierarchical implements I_Algorithm
 			
 			algState = State.Analyzing;
 			System.out.println("Results...");
+			validity=0;
+			sse=0.0;
+			DataPoint centriod = this.model.GetTrainingSet().GetCenter(clusters.get(0).GetAtributeNames().toArray(new String[clusters.get(0).GetAtributeNames().size()]));
 			for (int x = 0; x < clusters.size(); x++)
 			{
+				validity+= GetValidity(clusters.get(x), centriod);
+				sse+=clusters.get(x).CalcSquaredError();
 				clusters.get(x).SetClusterType();
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
 			}
 			algState=State.Analyzing;
 			GenerateResult();
+
 		}
 		else
 		{
@@ -162,14 +172,15 @@ public class Hierarchical implements I_Algorithm
 	}
 	
 	@Override
-	public void CheckStoppingCondition() 
+	public boolean CheckStoppingCondition() 
 	{
 		this.clusters.trimToSize();
 		
 		if (this.clusters.size() <= this.desiredClusterNumber)
 		{
-			this.isRunning = false;
+			return true;
 		}
+		return false;
 	}
 	
 	/**
@@ -354,7 +365,7 @@ public class Hierarchical implements I_Algorithm
 		result.dataModel = model;
 		result.stoppingDistance = 0.0;
 		result.fuzzyFactor=0.0;
-		result.output="";
+		result.output="Overall Validity = " + validity+"\nSum of Squared Error = " +sse+"\n";
 		result.desiredClusters=this.desiredClusterNumber;
 		for (Cluster c : clusters)
 		{
@@ -365,7 +376,66 @@ public class Hierarchical implements I_Algorithm
 		}
 		result.Serialize();
 	}
-
+	/** Calculate the cohesion between points in a given cluster
+	 * @param Cluster c
+	 * @return double Cohesion betwen points in a cluster
+	 */
+	private double  PointBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			for(int j=0;j<c.GetDataPoints().size();j++)
+				proximity+=c.GetDataPoint(i).GetDistance(c.GetDataPoint(j));
+		}
+		return proximity;
+	}
+	/** Calculate the cohesion between points in a given cluster to the centroid
+	 * @param Cluster c
+	 * @return double Cohesion between points in a cluster to the centroid
+	 */
+	private double CentroidBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			proximity = c.GetDataPoint(i).GetDistance(c.GetCentroid());
+		}
+		return proximity;
+	}
+	/** Calculate the separation between a cluster centriod
+	 * and the overall centriod
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double separation between centriod of c and center
+	 */
+	private double Separation(Cluster c ,DataPoint center)
+	{
+		return c.GetCentroid().GetDistance(center);
+	}
+	/** Calculate the validity of a cluster
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double validity of cluster c
+	 */
+	public double GetValidity(Cluster c ,DataPoint center)
+	{
+		double prox=PointBasedCohesion(c);
+		double valid= (1.0/c.GetDataPoints().size())*prox + CentroidBasedCohesion(c)+(c.GetDataPoints().size()*Separation(c,center));
+		double outsideCohesionSeparation=0.0;
+		for(int i = 0; i< this.clusters.size();i++)
+		{
+			if(i == c.GetClusterID()) continue;
+			for(int j =0;j<clusters.get(i).GetDataPoints().size();j++)
+			{
+				outsideCohesionSeparation+=c.GetCentroid().GetDistance(clusters.get(i).GetDataPoint(j));
+			}
+			
+			outsideCohesionSeparation/=prox;
+			valid+=outsideCohesionSeparation;
+		}
+		return valid;
+	}
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException 
 	{
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -373,7 +443,7 @@ public class Hierarchical implements I_Algorithm
 		
 		DataModel winning = new DataModel(path);
 		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAllAttributes());
+		//Cluster.SetAttributeNames(winning.GetAllAttributes());
 		Hierarchical h = new Hierarchical();
 		
 		//h.Set(winning.GetTrainingSet(), clusters, new UserGUI());			

@@ -17,7 +17,7 @@ import struct.DataModel.SplitMethod;
 
 public class Cluster implements Serializable
 {
-	private static ArrayList<String> ATTRIBUTE_NAMES;
+	private ArrayList<String> ATTRIBUTE_NAMES;
 	private LinkedList<DataPoint> dataPoints;
 	private DataPoint centroid;
 	private int clusterID;
@@ -79,14 +79,14 @@ public class Cluster implements Serializable
 	/** This needs to be set to same values from the DataSet
 	 * @param names The attribute names to use. 
 	 */
-	public static void SetAttributeNames(ArrayList<String> names)
+	public void SetAttributeNames(ArrayList<String> names)
 	{
-		Cluster.ATTRIBUTE_NAMES = names;
+		ATTRIBUTE_NAMES = names;
 	}
 	
-	public static ArrayList<String> GetAtributeNames()
+	public  ArrayList<String> GetAtributeNames()
 	{
-		return Cluster.ATTRIBUTE_NAMES;
+		return ATTRIBUTE_NAMES;
 	}
 	
 	/** Gets the data points currently associated with this cluster.
@@ -180,7 +180,7 @@ public class Cluster implements Serializable
 		// Need at least two points to find a new centroid.
 		if (this.GetDataPoints().size() > 1)
 		{
-			double[] sums = new double[Cluster.ATTRIBUTE_NAMES.size()];
+			double[] sums = new double[ATTRIBUTE_NAMES.size()];
 			// Zero out the sum array.
 			for (int i = 0; i < sums.length; i++)
 			{
@@ -194,14 +194,14 @@ public class Cluster implements Serializable
 				for (int j = 0; j < sums.length; j++)
 				{
 					dataPoints.get(i).assigned=false;
-					sums[j] += dataPoints.get(i).getAttribute(Cluster.ATTRIBUTE_NAMES.get(j));
+					sums[j] += dataPoints.get(i).getAttribute(ATTRIBUTE_NAMES.get(j));
 				}
 			}
 			
 			// Calculate new centroid from sums of the data point attributes.
 			for (int i = 0; i < sums.length; i++)
 			{
-				newCentroid.addAttribute(Cluster.ATTRIBUTE_NAMES.get(i), sums[i] / dataPoints.size());
+				newCentroid.addAttribute(ATTRIBUTE_NAMES.get(i), sums[i] / dataPoints.size());
 			}
 			
 			// Set the newly calculated centroid.
@@ -227,10 +227,10 @@ public class Cluster implements Serializable
 	{
 		double summation = 0;
 		
-		for(int i = 0; i < Cluster.ATTRIBUTE_NAMES.size(); i++)
+		for(int i = 0; i < ATTRIBUTE_NAMES.size(); i++)
 		{
-			double centroidVal = this.centroid.getAttribute(Cluster.ATTRIBUTE_NAMES.get(i));
-			double pointTwoVal = p.getAttribute(Cluster.ATTRIBUTE_NAMES.get(i));
+			double centroidVal = this.centroid.getAttribute(ATTRIBUTE_NAMES.get(i));
+			double pointTwoVal = p.getAttribute(ATTRIBUTE_NAMES.get(i));
 			summation += Math.pow((centroidVal-pointTwoVal),2);
 		}
 		
@@ -301,6 +301,22 @@ public class Cluster implements Serializable
         return gini;
 	}
 	
+	public double CalcAbsoluteError()
+	{
+		return 0.0;
+	}
+	
+	public double CalcSquaredError()
+	{
+		double sse = 0.0;
+		for(int i =0;i<this.GetDataPoints().size();i++)
+		{
+			sse+=Math.pow((this.centroid.GetDistance(GetDataPoint(i))),2);
+		}
+		return sse;
+	}
+	
+	
 	/** Counts every instance of a class in the cluster.
 	 * @return A hashmap where the key is the class name and the value is the number
 	 * of datapoints of that type that are in the cluster.
@@ -330,7 +346,7 @@ public class Cluster implements Serializable
 		DataModel winning = new DataModel(path);
 		winning.GetAttributesFromExcel();
 		winning.GetDataFromExcel(SplitMethod.ClassPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAllAttributes());
+		//SetAttributeNames(winning.GetAllAttributes());
 		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
 		int clusterCount = 0;
 		Cluster temp = new Cluster(clusterCount);

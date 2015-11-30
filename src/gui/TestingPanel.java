@@ -12,6 +12,8 @@ import struct.DataSet;
 import struct.Results;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.awt.event.ActionEvent;
@@ -55,32 +57,38 @@ public class TestingPanel extends JPanel
 					@Override
 					protected Double doInBackground() throws Exception 
 					{
-						Cluster[] clusters = result.clusters;
+						Cluster[] temp = result.clusters;
+						ArrayList<Cluster> clusters = new ArrayList<Cluster>();//(ArrayList<Cluster>)Arrays.asList(result.clusters);
 						DataSet testingSet = result.dataModel.GetTestingSet();
 						String selectedClass = null;
 						int numCorrect = 0;
-
-						if (clusters.length > 0) 
+						int removed = 0;
+						for(int i =0; i < temp.length;i++)
 						{
-							for (int i = 0; i < result.clusters.length; i++) 
+							if(temp[i]!=null)
+								clusters.add(temp[i]);
+						}
+						if (clusters.size() > 0) 
+						{
+							for (int i = 0; i < clusters.size(); i++) 
 							{
-								clusters[i].SetClusterType();
+								clusters.get(i).SetClusterType();
 							}
 							
 							
 							for (int i = 0; i < testingSet.GetDataSetSize(); i++) 
 							{
-								double smallestDistance = clusters[0].GetDistance(testingSet.GetPoint(i));
-								selectedClass = clusters[0].GetClusterType();
+								double smallestDistance = clusters.get(0).GetDistance(testingSet.GetPoint(i));
+								selectedClass = clusters.get(0).GetClusterType();
 
-								for (int j = 1; j < result.clusters.length; j++) 
+								for (int j = 1; j < clusters.size(); j++) 
 								{
-									double temp = clusters[j].GetDistance(testingSet.GetPoint(i));
+									double tempDist = clusters.get(j).GetDistance(testingSet.GetPoint(i));
 
-									if (temp < smallestDistance) 
+									if (tempDist < smallestDistance) 
 									{
-										smallestDistance = temp;
-										selectedClass = clusters[j].GetClusterType();
+										smallestDistance = tempDist;
+										selectedClass = clusters.get(j).GetClusterType();
 									}
 								}
 								
@@ -140,5 +148,6 @@ public class TestingPanel extends JPanel
 	public void SetResult(Results r)
 	{
 		this.result = r;
+		textArea.setText("");
 	}
 }

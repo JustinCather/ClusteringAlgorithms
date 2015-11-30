@@ -1,9 +1,10 @@
 package struct;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
-public class DataSet 
+public class DataSet implements Serializable
 {	
 	private ArrayList<String> attributes;
 	private LinkedList<DataPoint> points;
@@ -155,5 +156,41 @@ public class DataSet
 	public LinkedList<DataPoint> GetDataPoints()
 	{
 		return this.points;
+	}
+	
+	public DataPoint GetCenter(String[] attributes)
+	{
+		DataPoint newCentroid = new DataPoint();
+		
+		// Need at least two points to find a new centroid.
+		if (this.GetDataPoints().size() > 1)
+		{
+			double[] sums = new double[attributes.length];
+			// Zero out the sum array.
+			for (int i = 0; i < sums.length; i++)
+			{
+				sums[i] = 0;
+			}
+			
+			// Go through all data points
+			for (int i = 0; i < points.size(); i++)
+			{
+				// sum up each attribute of each data point.
+				for (int j = 0; j < sums.length; j++)
+				{
+					points.get(i).assigned=false;
+					sums[j] += points.get(i).getAttribute(attributes[j]);
+				}
+			}
+			
+			// Calculate new centroid from sums of the data point attributes.
+			for (int i = 0; i < sums.length; i++)
+			{
+				newCentroid.addAttribute(attributes[i], sums[i] / points.size());
+			}
+			return newCentroid;
+		}
+		return null;
+
 	}
 }

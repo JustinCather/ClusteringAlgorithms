@@ -33,7 +33,7 @@ public class DataModel implements Serializable
 	public enum SplitMethod{ClassPercent, DataPercent, RandomPercent, EveryOther };
 		
 	private transient DataSet trainingSet;
-	private transient DataSet testingSet;
+	private  DataSet testingSet;
 	private transient ArrayList<String> allAttributes;
 	private ArrayList<String> attributesNotUsed;
 	private ArrayList<String> usedAttributes;
@@ -132,12 +132,20 @@ public class DataModel implements Serializable
 	 * @param m The method to split the data into testing and training sets.
 	 * @param splitPercent A percent value that represents how much of the data the training set will be.
 	 */
-	public void SetSplitMethod(SplitMethod m, int splitPercent)
+	public void SetSplitMethod(SplitMethod m, double splitPercent)
 	{
 		this.splitMethod = m;
-		this.SetPercent(splitPercent);
+		this.percent=percent;
 	}
 	
+
+	public void SetSplitMethod(SplitMethod m, int percent)
+	{
+		splitMethod=m;
+		SetPercent(percent);
+	}
+	
+
 	/** Gets the training dataset
 	 * @return The training dataset.
 	 */
@@ -316,7 +324,7 @@ public class DataModel implements Serializable
 		this.trainingSet.SetAttributes(this.GetAllAttributes());
 		this.testingSet.SetAttributes(this.GetAllAttributes());
 	}
-	
+
 	public void GetDataFromExcel()throws BiffException, IOException
 	{
 		GetDataFromExcel(this.usedAttributes,this.splitMethod,this.percent);
@@ -427,7 +435,7 @@ public class DataModel implements Serializable
 			// Repeats alternating between x and y until points is empty.
 			// Makes the distribution even across the data set.
 			case DataPercent:
-				int testingCount = (int)Math.floor(this.percent * 100);
+				int testingCount = (int)Math.floor(100-this.percent);
 				int trainingCount = points.size() / (100 - testingCount);
 				testingCount = points.size() / testingCount;
 				

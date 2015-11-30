@@ -1,5 +1,6 @@
 package struct;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -22,9 +23,10 @@ public class Results implements Serializable {
 	public Double stoppingDistance;
 	public Double fuzzyFactor;
 	public int desiredClusters;
+	public transient String path;
 	public Results()
 	{
-		
+		path="";
 	}
 	
 	public void Serialize()
@@ -33,12 +35,16 @@ public class Results implements Serializable {
 		{
 			dataFileName=dataFileName.replace('\\','_');
 			String fileName = alg.toString()+dataFileName+"_"+ new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime())+".ser";
+			File f = new File(fileName);
+			path=f.getAbsolutePath();
 			FileOutputStream fileOut =
-	        new FileOutputStream(fileName);
+	        new FileOutputStream(f);
 	        ObjectOutputStream out = new ObjectOutputStream(fileOut);
 	        out.writeObject(this);
 	        out.close();
+	        
 	        fileOut.close();
+	        
 		}
 		catch(Exception ex)
 		{

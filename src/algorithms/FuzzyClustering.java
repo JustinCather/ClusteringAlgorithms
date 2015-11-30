@@ -31,6 +31,7 @@ public class FuzzyClustering implements I_Algorithm {
 	private State algState;
 	private Results result;
 	private ArrayList<Cluster> current;
+	private transient double validity,sse;
 	public FuzzyClustering() 
 	{
 		this.isRunning = false;
@@ -38,84 +39,88 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 	@Override
 	public void run() {
+			current = new ArrayList<Cluster>();
+			algState = State.Initializing;
 			isRunning = true;
-			
 			try
 			{
 				this.model.GetDataFromExcel();
 			}
 			catch(Exception ex)
 			{}
+			this.set=model.GetTrainingSet();
+			DataPoint centroid = set.GetCenter(model.GetUsedAttributes().toArray(new String[model.GetUsedAttributes().size()]));
+			pickInitCentroids(set);
 			
-			if (this.model.GetTrainingSet().GetDataSetSize() > this.desiredClusterNumber)
+			this.fuzzyMatrix = new LinkedList<double[]>();
+			for(int i=0;i<set.GetDataSetSize();i++)
 			{
-				current = new ArrayList<Cluster>();
-				algState = State.Initializing;
-				
-				this.set=model.GetTrainingSet();
-				pickInitCentroids(set);
-				
-				this.fuzzyMatrix = new LinkedList<double[]>();
-				for(int i=0;i<set.GetDataSetSize();i++)
+				fuzzyMatrix.add(new double[this.desiredClusterNumber]);
+			}
+			int it=1;
+			algState = State.Running;
+			while (isRunning && !isAborted)
+			{
+				System.out.println("Iteration " +it);
+				it++;
+				System.out.println("Assigning points");
+				AssignPoints();
+				System.out.println("Calculating centers");
+				RecalcCentroids();
+				System.out.println("Checking stop");
+				boolean done=CheckStoppingCondition();
+				if(done) break;
+			}
+			
+			algState = State.Analyzing;
+			ArrayList<Cluster> clusters = new ArrayList<Cluster>();
+			for(int i =0; i< this.desiredClusterNumber; i++)
+			{
+				clusters.add(new Cluster(i));
+				clusters.get(i).SetCentroid(crtCentroids.get(i));
+			}
+			int size = this.set.GetDataSetSize();
+			for(int dp = 0; dp<size;dp++)
+			{
+				DataPoint temp = this.set.GetPoint(size-1-dp);
+				int clusterNumber = 0;
+				double strength = this.fuzzyMatrix.get(size-1-dp)[0];
+				for(int i=1;i<this.desiredClusterNumber;i++)
 				{
-					fuzzyMatrix.add(new double[this.desiredClusterNumber]);
-				}
-				int it=1;
-				algState = State.Running;
-				while (isRunning && !isAborted)
-				{
-					System.out.println("Iteration " +it);
-					it++;
-					System.out.println("Assigning points");
-					AssignPoints();
-					System.out.println("Calculating centers");
-					RecalcCentroids();
-					System.out.println("Checking stop");
-					CheckStoppingCondition();	
-				}
-				
-				algState = State.Analyzing;
-				ArrayList<Cluster> clusters = new ArrayList<Cluster>();
-				for(int i =0; i< this.desiredClusterNumber; i++)
-					clusters.add(new Cluster(i));
-				int size = this.set.GetDataSetSize();
-				for(int dp = 0; dp<size;dp++)
-				{
-					DataPoint temp = this.set.GetPoint(size-1-dp);
-					int clusterNumber = 0;
-					double strength = this.fuzzyMatrix.get(size-1-dp)[0];
-					for(int i=1;i<this.desiredClusterNumber;i++)
+					if(this.fuzzyMatrix.get(size-1-dp)[i]>strength)
 					{
-						if(this.fuzzyMatrix.get(size-1-dp)[i]>strength)
-						{
-							strength=this.fuzzyMatrix.get(size-1-dp)[i];
-							clusterNumber =i;
-						}
+						strength=this.fuzzyMatrix.get(size-1-dp)[i];
+						clusterNumber =i;
 					}
-					clusters.get(clusterNumber).AddDataPoint(temp);
 				}
-				model.GetTrainingSet().SetIsPlotting(true);
-				userGUI.CurrentSolution(clusters);
-				
-				System.out.println("Results...");
-				for (int x = 0; x < clusters.size(); x++)
-				{
-					clusters.get(x).SetClusterType();
-					System.out.println("Cluster " + clusters.get(x).GetClusterID());
-					System.out.println(clusters.get(x).ClusterStats());
-				}
-				current = clusters;
-				algState=State.Analyzing;
-				GenerateResult();
+				clusters.get(clusterNumber).AddDataPoint(temp);
+				clusters.get(clusterNumber).SetAttributeNames(new ArrayList<String>(Arrays.asList(temp.GetAttributeNames())));
 			}
-			else
-			{
-				MessageBox.show("Cannot have more clusters than there are datapoints!", "To many clusters.");
-			}
+			model.GetTrainingSet().SetIsPlotting(true);
+			userGUI.CurrentSolution(clusters);
 			
-			//this.userGUI.SetAlgorithmFinished();	
+			System.out.println("Results...");
+			algState=State.Analyzing;
+			sse=0.0;
+			validity=0.0;
+			for (int x = 0; x < clusters.size(); x++)
+			{
+				validity+= GetValidity(clusters.get(x), centroid);
+				sse+=clusters.get(x).CalcSquaredError();
+				clusters.get(x).SetClusterType();
+				System.out.println("Cluster " + clusters.get(x).GetClusterID());
+				System.out.println(clusters.get(x).ClusterStats());
+			}
+			current = clusters;
+			
+			GenerateResult();
+			//this.userGUI.SetAlgorithmFinished();
+			
+			
 			isRunning = false;
 		}
+
+
 	
 	@Override
 	public void Stop()
@@ -149,33 +154,29 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 
 	@Override
-	public void CheckStoppingCondition() {
+	public boolean CheckStoppingCondition() {
 		boolean isSame = true;
 		String[] attr = set.GetPoint(0).GetAttributeNames();
-		
+		double maxDifference =0;
 		if (crtCentroids.size() == prvCentroids.size()) 
 		{
 			for (int i = 0; i < crtCentroids.size(); i++) 
 			{
-				for (int j = 0; j < attr.length; j++) 
-				{
-					if (Math.abs(crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>stoppingDistance) 
-					{
-						isSame = false;
-						break;
-					}
-				}
-				if(!isSame)
-					break;
+				double delta  = crtCentroids.get(i).GetDistance(prvCentroids.get(i));
+				if(delta>maxDifference)
+					maxDifference=delta;
 			} 
+			System.out.println("Max change in centriods " + maxDifference);
+			if(maxDifference > this.stoppingDistance)
+				isSame=false;
 		}
 		else
 		{
 			isSame = false;
 		}
-		
+		return isSame;
 		// if not the same keep running.
-		isRunning = !isSame;
+		//isRunning = !isSame;
 	}
 	
 	private void AssignPoints()
@@ -224,11 +225,11 @@ public class FuzzyClustering implements I_Algorithm {
 			double[] summationofPoints = new double[this.set.GetPoint(0).GetNumberOfAttributes()];
 			for(int dp=0;dp<this.set.GetDataSetSize();dp++)
 			{
-				System.out.println("Adding point " + (dp+1)+ " out of " +this.set.GetDataSetSize());
+			//	System.out.println("Adding point " + (dp+1)+ " out of " +this.set.GetDataSetSize());
 				DataPoint data = this.set.GetPoint(dp);
 				String[] attributes = data.GetAttributeNames();
 				summationOfWeights+=Math.pow(this.fuzzyMatrix.get(dp)[i],this.fuzzynessFactor);
-				System.out.println(summationOfWeights);
+				//System.out.println(summationOfWeights);
 				for(int att = 0; att<attributes.length;att++)
 				{
 					summationofPoints[att]+= data.getAttribute(attributes[att])*Math.pow(this.fuzzyMatrix.get(dp)[i],this.fuzzynessFactor);
@@ -326,14 +327,73 @@ public class FuzzyClustering implements I_Algorithm {
 		result.stoppingDistance = this.stoppingDistance;
 		result.fuzzyFactor=this.fuzzynessFactor;
 		result.desiredClusters=this.desiredClusterNumber;
-		result.output="";
+		result.output="Overall Validity = " + validity+"\nSum of Squared Error = " +sse+"\n";
 		for (Cluster c : current)
 		{
-			//result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			//result.output+="Gini = " + c.CaclGiniIndex() + "\n";
-			result.output += "Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n";
+			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
+			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
 			clusterNum++;
 		}
 		result.Serialize();
+	}
+	/** Calculate the cohesion between points in a given cluster
+	 * @param Cluster c
+	 * @return double Cohesion betwen points in a cluster
+	 */
+	private double  PointBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			for(int j=0;j<c.GetDataPoints().size();j++)
+				proximity+=c.GetDataPoint(i).GetDistance(c.GetDataPoint(j));
+		}
+		return proximity;
+	}
+	/** Calculate the cohesion between points in a given cluster to the centroid
+	 * @param Cluster c
+	 * @return double Cohesion between points in a cluster to the centroid
+	 */
+	private double CentroidBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			proximity = c.GetDataPoint(i).GetDistance(c.GetCentroid());
+		}
+		return proximity;
+	}
+	/** Calculate the separation between a cluster centriod
+	 * and the overall centriod
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double separation between centriod of c and center
+	 */
+	private double Separation(Cluster c ,DataPoint center)
+	{
+		return c.GetCentroid().GetDistance(center);
+	}
+	/** Calculate the validity of a cluster
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double validity of cluster c
+	 */
+	public double GetValidity(Cluster c ,DataPoint center)
+	{
+		double prox=PointBasedCohesion(c);
+		double valid= (1.0/c.GetDataPoints().size())*prox + CentroidBasedCohesion(c)+(c.GetDataPoints().size()*Separation(c,center));
+		double outsideCohesionSeparation=0.0;
+		for(int i = 0; i< this.current.size();i++)
+		{
+			if(i == c.GetClusterID()) continue;
+			for(int j =0;j<current.get(i).GetDataPoints().size();j++)
+			{
+				outsideCohesionSeparation+=c.GetCentroid().GetDistance(current.get(i).GetDataPoint(j));
+			}
+			
+			outsideCohesionSeparation/=prox;
+			valid+=outsideCohesionSeparation;
+		}
+		return valid;
 	}
 }

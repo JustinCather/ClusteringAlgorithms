@@ -94,7 +94,7 @@ public class UserGui_V2 {
 	private JTextField txtPathOfDataset;
 	private JTextField textField_1;
 	private JTextField textField_2;
-	private JPanel DataSet, Algorthim,Graph,Results;
+	private JPanel DataSet, Algorthim,Graph,ResultsPanel;
 	private JList availble,selected,list_1;
 	JComboBox<Algorithm> algorithmComboBox;
 	JComboBox<String> yComboBox,xComboBox;
@@ -133,6 +133,8 @@ public class UserGui_V2 {
 		        		  label_4.setText(s.toString());
 		        		  if(!algorithm.IsRunning() && s==State.Analyzing)
 		        		  {
+		        			Results finalResults = algorithm.GetResults();
+		        			finalResults = Results.Deserialize(finalResults.path);
 		        			LoadGraphsAndResults(algorithm.GetResults());
 		        			if(((DefaultListModel)list_1.getModel()).size()>0)
 		        			{
@@ -178,7 +180,7 @@ public class UserGui_V2 {
 		frmClusteringAlgorithms.getContentPane().setBackground(SystemColor.menu);
 		frmClusteringAlgorithms.setTitle("Clustering Algorithms");
 		frmClusteringAlgorithms.setResizable(false);
-		frmClusteringAlgorithms.setBounds(100, 100, 903, 597);
+		frmClusteringAlgorithms.setBounds(100, 100, 942, 610);
 		frmClusteringAlgorithms.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frmClusteringAlgorithms.getContentPane().setLayout(null);
 		
@@ -196,7 +198,7 @@ public class UserGui_V2 {
 		        //hide panels
 		        Algorthim.setVisible(false);
 		        DataSet.setVisible(false);
-		        Results.setVisible(false);
+		        ResultsPanel.setVisible(false);
 		        Graph.setVisible(false);
 		        testingPanel.setVisible(false);
 		        if(node.toString().equals("Data Set"))
@@ -213,7 +215,7 @@ public class UserGui_V2 {
 		        }
 		        if(node.toString().equals("Results"))
 		        {
-		        	Results.setVisible(true);
+		        	ResultsPanel.setVisible(true);
 		        }
 		        if (node.toString().equals("Testing"))
 		        {
@@ -232,14 +234,11 @@ public class UserGui_V2 {
 		subCat = new DefaultMutableTreeNode("Algorithm");
 		root.add(subCat);
 		subCat = new DefaultMutableTreeNode("Results");
-		root.add(subCat);	
+		root.add(subCat);
 		subCat = new DefaultMutableTreeNode("Graphs");
 		root.add(subCat);
 		subCat = new DefaultMutableTreeNode("Testing");
 		root.add(subCat);
-		
-		Results = new JPanel();
-		Results.setVisible(false);
 		
 		Graph = new JPanel();
 		Graph.setVisible(false);
@@ -264,8 +263,26 @@ public class UserGui_V2 {
 		Algorthim.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		Algorthim.setVisible(false);
 		
+
+		ResultsPanel = new JPanel();
+		ResultsPanel.setVisible(false);
+		
+				ResultsPanel.setBounds(154, 114, 764, 327);
+				frmClusteringAlgorithms.getContentPane().add(ResultsPanel);
+				ResultsPanel.setLayout(null);
+				
+				JScrollPane scrollPane3 = new JScrollPane();
+				scrollPane3.setViewportBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Results", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+				scrollPane3.setBounds(0, 0, 764, 327);
+				ResultsPanel.add(scrollPane3);
+				resultsTextPane = new JTextArea();
+				resultsTextPane.setBounds(0, 0, 731, 327);
+				resultsTextPane.setEditable(false);
+				resultsTextPane.setBackground(SystemColor.text);
+				scrollPane3.setViewportView(resultsTextPane);
+
 		DataSet = new JPanel();
-		DataSet.setBounds(154, 114, 731, 327);
+		DataSet.setBounds(154, 114, 770, 327);
 		frmClusteringAlgorithms.getContentPane().add(DataSet);
 		DataSet.setLayout(null);
 		
@@ -328,21 +345,26 @@ public class UserGui_V2 {
 		panel_1.add(button_1);
 		
 		JPanel optionsPanel = new JPanel();
-		optionsPanel.setBounds(465, 11, 259, 165);
+
+		optionsPanel.setBounds(465, 11, 293, 202);
+
+
 		DataSet.add(optionsPanel);
 		optionsPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Options", TitledBorder.CENTER, TitledBorder.TOP, null, new Color(0, 0, 0)));
 		optionsPanel.setLayout(null);
 		
 		JLabel lblTrainingPercent = new JLabel("Training Percent");
-		lblTrainingPercent.setBounds(27, 26, 78, 14);
+		lblTrainingPercent.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTrainingPercent.setBounds(12, 26, 110, 14);
 		optionsPanel.add(lblTrainingPercent);
 		
 		JLabel lblTestingPercent = new JLabel("Testing Percent");
-		lblTestingPercent.setBounds(149, 26, 78, 14);
+		lblTestingPercent.setHorizontalAlignment(SwingConstants.CENTER);
+		lblTestingPercent.setBounds(134, 26, 110, 14);
 		optionsPanel.add(lblTestingPercent);
 		
 		JLabel lblDataSplitMethod = new JLabel("Data Split Method");
-		lblDataSplitMethod.setBounds(24, 75, 85, 14);
+		lblDataSplitMethod.setBounds(10, 75, 112, 14);
 		optionsPanel.add(lblDataSplitMethod);
 		
 		dataSplitMethod = new JComboBox<SplitMethod>();
@@ -365,32 +387,34 @@ public class UserGui_V2 {
 		optionsPanel.add(testingPercentField);
 		
 		chckbxNormalizeData = new JCheckBox("Normalize Data");
-		chckbxNormalizeData.setBounds(132, 91, 112, 23);
+		chckbxNormalizeData.setBounds(132, 91, 130, 23);
 		optionsPanel.add(chckbxNormalizeData);
 		
+
 		comboBoxSmoothMethod = new JComboBox<SmoothMethod>();
 		comboBoxSmoothMethod.setModel(new DefaultComboBoxModel<SmoothMethod>(SmoothMethod.values()));
-		comboBoxSmoothMethod.setBounds(134, 133, 112, 20);
+		comboBoxSmoothMethod.setBounds(169, 133, 112, 20);
 		optionsPanel.add(comboBoxSmoothMethod);
 		
 		textFieldNumBins = new JFormattedTextField(clusterFormatter);
 		textFieldNumBins.setHorizontalAlignment(SwingConstants.CENTER);
-		textFieldNumBins.setBounds(81, 133, 43, 20);
+		textFieldNumBins.setBounds(97, 133, 43, 20);
 		optionsPanel.add(textFieldNumBins);
 		textFieldNumBins.setColumns(10);
 		
 		chckbxSmooth = new JCheckBox("Smooth");
-		chckbxSmooth.setBounds(10, 132, 67, 23);
+		chckbxSmooth.setBounds(10, 132, 78, 23);
 		optionsPanel.add(chckbxSmooth);
 		
 		JLabel lblBins = new JLabel("# Bins");
-		lblBins.setBounds(87, 119, 30, 14);
+		lblBins.setBounds(97, 119, 61, 14);
 		optionsPanel.add(lblBins);
 		
 		JLabel lblMethod = new JLabel("Method");
-		lblMethod.setBounds(167, 119, 46, 14);
+		lblMethod.setBounds(202, 119, 46, 14);
 		optionsPanel.add(lblMethod);
 		
+
 		// Update the testing set when the training set percent changes.
 		trainingPercentField.getDocument().addDocumentListener(new DocumentListener() {
 			
@@ -465,11 +489,11 @@ public class UserGui_V2 {
 				}
 			}
 		});
-		
 		testingPanel = new TestingPanel();
 		testingPanel.setBounds(154, 114, 739, 370);
 		frmClusteringAlgorithms.getContentPane().add(testingPanel);
 		testingPanel.setVisible(false);
+
 		Algorthim.setBounds(154, 114, 337, 164);
 		frmClusteringAlgorithms.getContentPane().add(Algorthim);
 		Algorthim.setLayout(null);
@@ -575,10 +599,13 @@ public class UserGui_V2 {
 						int numberOfClusters = (int) clusterField.getValue();
 						SplitMethod splitMethod = dataSplitMethod.getItemAt(dataSplitMethod.getSelectedIndex());
 						m.SetSplitMethod(splitMethod, trainingPercent);
+						
 						Algorithm algorithmType = algorithmComboBox.getItemAt(algorithmComboBox.getSelectedIndex());
 					
 					try 
-					{			
+					{
+						//dataModel.GetDataFromExcel(splitMethod, trainingPercent);
+						
 						// Check normalize.
 						if (chckbxNormalizeData.isSelected())
 						{
@@ -597,7 +624,7 @@ public class UserGui_V2 {
 						else
 						{
 							m.DisableSmoothing();
-						}		
+						}
 						
 						if (attributes.size() > 1) 
 						{		
@@ -640,7 +667,7 @@ public class UserGui_V2 {
 		btnX.setFont(new Font("Dialog", Font.PLAIN, 12));
 		btnX.setBounds(783, 82, 110, 20);
 		frmClusteringAlgorithms.getContentPane().add(btnX);
-		Graph.setBounds(154, 114, 739, 370);
+		Graph.setBounds(154, 114, 770, 370);
 		frmClusteringAlgorithms.getContentPane().add(Graph);
 		Graph.setLayout(null);
 		
@@ -669,13 +696,16 @@ public class UserGui_V2 {
 				{
 					RefreshPlot();
 				}
-				if(algorithm.GetState()!=State.Initializing && algorithm.GetState()!=State.Idle)
+				else if(algorithm!=null)
 				{
-				if(!algorithm.GetDataModel().GetTrainingSet().GetIsPlotting())
-				{
-					if(xComboBox.getItemCount()>0 && yComboBox.getItemCount()>0)
-						RefreshPlot();
-				}
+					if(algorithm.GetState()!=State.Initializing && algorithm.GetState()!=State.Idle)
+					{
+						if(!algorithm.GetDataModel().GetTrainingSet().GetIsPlotting())
+						{
+							if(xComboBox.getItemCount()>0 && yComboBox.getItemCount()>0)
+								RefreshPlot();
+						}
+					}
 				}
 				
 			}
@@ -700,31 +730,20 @@ public class UserGui_V2 {
 				{
 					RefreshPlot();
 				}
-				if(algorithm.GetState()!=State.Initializing && algorithm.GetState()!=State.Idle)
+				else if(algorithm!=null)
 				{
-				if(!algorithm.GetDataModel().GetTrainingSet().GetIsPlotting())
-				{
-					if(xComboBox.getItemCount()>0 && yComboBox.getItemCount()>0)
-						RefreshPlot();
-				}
+					if(algorithm.GetState()!=State.Initializing && algorithm.GetState()!=State.Idle)
+					{
+						if(!algorithm.GetDataModel().GetTrainingSet().GetIsPlotting())
+						{
+							if(xComboBox.getItemCount()>0 && yComboBox.getItemCount()>0)
+								RefreshPlot();
+						}
+					}
 				}
 			}
 			
 		});
-		Results.setBounds(154, 114, 731, 327);
-		frmClusteringAlgorithms.getContentPane().add(Results);
-		Results.setLayout(null);
-		
-		
-		JScrollPane scrollPane3 = new JScrollPane();
-		scrollPane3.setViewportBorder(new TitledBorder(null, "Available", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		scrollPane3.setBounds(0, 0, 731, 327);
-		Results.add(scrollPane3);
-		resultsTextPane = new JTextArea();
-		resultsTextPane.setBounds(0, 0, 731, 327);
-		resultsTextPane.setEditable(false);
-		resultsTextPane.setBackground(SystemColor.text);
-		scrollPane3.setViewportView(resultsTextPane);
 		
 		clusterFormatter = new NumberFormatter(NumberFormat.getIntegerInstance());
 		clusterFormatter.setValueClass(Integer.class);
@@ -736,7 +755,7 @@ public class UserGui_V2 {
 		
 		JPanel image = new JPanel();
 		image.setBackground(SystemColor.menu);
-		JLabel imgLabel = new JLabel(new ImageIcon("src\\gui\\cooltext149771592562968.png"));
+		JLabel imgLabel = new JLabel(new ImageIcon("src\\gui\\logo.png"));
 		imgLabel.setBackground(Color.LIGHT_GRAY);
 		image.add(imgLabel);
 		image.setBounds(0, 0, 440, 95);
@@ -746,12 +765,18 @@ public class UserGui_V2 {
 		list.setBounds(909, 79, -236, -67);
 		frmClusteringAlgorithms.getContentPane().add(list);
 		
+		
+		JScrollPane scrollPanel4 = new JScrollPane();
+		//scrollPane14.setViewportBorder(new TitledBorder(new LineBorder(new Color(184, 207, 229)), "Selected", TitledBorder.LEADING, TitledBorder.TOP, null, new Color(51, 51, 51)));
+		scrollPanel4.setBounds(507, 11, 386, 68);
+		frmClusteringAlgorithms.getContentPane().add(scrollPanel4);
+		
 		list_1 = new JList();
 		list_1.setModel(new DefaultListModel());
 		list_1.setBackground(SystemColor.text);
 		list_1.setBorder(new TitledBorder(null, "Queue", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		list_1.setBounds(507, 11, 386, 68);
-		frmClusteringAlgorithms.getContentPane().add(list_1);
+		scrollPanel4.setViewportView(list_1);
 		
 		JSeparator separator = new JSeparator();
 		separator.setForeground(Color.BLACK);
@@ -837,7 +862,7 @@ public class UserGui_V2 {
 		{
 			this.dataModel = new DataModel(txtPathOfDataset.getText());
 			this.dataModel.GetAttributesFromExcel();
-			Cluster.SetAttributeNames(dataModel.GetAllAttributes());
+			//Cluster.SetAttributeNames(dataModel.GetAllAttributes());
 		} 
 		catch (BiffException | IOException e) {
 			MessageBox.show("Tried to get attributes from excel file, but an error occured. \n" + e.getMessage(), "Error Reading Excel File");
@@ -929,10 +954,11 @@ public class UserGui_V2 {
 			
 			if (result == JFileChooser.APPROVE_OPTION)
 			{
+				f=null;
 				selectedFile = fileChooser.getSelectedFile();
 				Results s = struct.Results.Deserialize(selectedFile.getAbsolutePath());
-				f=s;
-				testingPanel.SetResult(f);
+				//f=s;
+				testingPanel.SetResult(s);
 				resultsTextPane.setText(s.output);
 				Algorithm a = s.alg;//.GetType();
 				 algorithmComboBox.setSelectedItem(a);
@@ -972,7 +998,7 @@ public class UserGui_V2 {
 						clusterField.setText(((Integer)s.desiredClusters).toString());
 						chckbxNormalizeData.setSelected(s.dataModel.GetNormalized());
 				}
-				 LoadGraphsAndResults(f);
+				 LoadGraphsAndResults(s);
 			}
 			/*
 
@@ -1005,7 +1031,7 @@ public class UserGui_V2 {
 	}
 	private void LoadGraphsAndResults(Results s)
 	{
-			f=s;
+			
 			testingPanel.SetResult(s);
 			xComboBox.removeAllItems();
 			yComboBox.removeAllItems();
@@ -1016,6 +1042,7 @@ public class UserGui_V2 {
 			}
 			this.resultsTextPane.setText(s.output);
 			yComboBox.setSelectedIndex(1);
+			f=s;
 			RefreshPlot();
 	}
 	private void RefreshPlot()

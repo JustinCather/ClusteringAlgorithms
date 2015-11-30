@@ -52,7 +52,7 @@ public interface I_Algorithm extends Runnable   {
 	/**
 	 * Checks if the algorithm has reached its stoping condition.
 	 */
-	void CheckStoppingCondition();
+	boolean CheckStoppingCondition();
 	
 	/** Gets the desired number of clusters for the algorithm.
 	 * @return The desired number of clusters.

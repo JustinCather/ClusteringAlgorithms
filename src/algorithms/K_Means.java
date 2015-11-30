@@ -39,7 +39,7 @@ public class K_Means implements I_Algorithm{
 	public double stoppingDistance;
 	private State algState;
 	private Results result;
-	
+	private transient double validity,sse;
 	public K_Means()
 	{
 		isRunning = false;
@@ -104,6 +104,8 @@ public class K_Means implements I_Algorithm{
 		{}
 		
 		this.set = model.GetTrainingSet();
+		String[] a = new String[model.GetUsedAttributes().size()];
+		DataPoint centriod = set.GetCenter(model.GetUsedAttributes().toArray(a));
 		if(set.GetDataSetSize() < numClusters)
 		{
 			gui.MessageBox.show("You have entered more clusters than available points.!!!!!","ERROR");
@@ -130,8 +132,8 @@ public class K_Means implements I_Algorithm{
 			{
 				AssignPoints();
 				RecalcCentroids();
-				CheckStoppingCondition();			
-				
+				boolean done = CheckStoppingCondition();			
+				if(done)break;
 				model.GetTrainingSet().SetIsPlotting(true);
 				//userGUI.CurrentSolution(this.clusters);
 					
@@ -150,8 +152,13 @@ public class K_Means implements I_Algorithm{
 			model.GetTrainingSet().SetIsPlotting(false);
 			
 			System.out.println("Results...");
+			validity=0;
+			sse=0.0;
+			
 			for (int x = 0; x < clusters.size(); x++)
 			{
+				validity+= GetValidity(clusters.get(x), centriod);
+				sse+=clusters.get(x).CalcSquaredError();
 				clusters.get(x).SetClusterType();
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
@@ -195,7 +202,7 @@ public class K_Means implements I_Algorithm{
 		return numClusters;
 	}
 	@Override
-	public void CheckStoppingCondition() {
+	public boolean CheckStoppingCondition() {
 		boolean isSame = true;
 		String[] attr = clusters.get(0).GetCentroid().GetAttributeNames();
 		
@@ -219,9 +226,9 @@ public class K_Means implements I_Algorithm{
 		{
 			isSame = false;
 		}
-		
+		return isSame;
 		// if not the same keep running.
-		isRunning = !isSame;
+		//isRunning = !isSame;
 	}
 	
 	/**
@@ -354,18 +361,78 @@ public class K_Means implements I_Algorithm{
 		result.dataModel = model;
 		result.stoppingDistance = this.stoppingDistance;
 		result.fuzzyFactor=0.0;
-		result.output="";
+		result.output="Overall Validity = " + validity+"\nSum of Squared Error = " +sse+"\n";
 		result.desiredClusters=this.numClusters;
 		for (Cluster c : clusters)
 		{
 			//result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
 			//result.output+="Gini = " + c.CaclGiniIndex() + "\n";
-			result.output += "Cluster " + clusterNum + " Gini=" + c.CaclGiniIndex() + "\n" + c.ClusterStats() + "\n\n";
+			result.output += "Cluster " + clusterNum + " Gini = " + c.CaclGiniIndex() +"\n"+c.ClusterStats() + "\n\n";
 			clusterNum++;
 		}
 		result.Serialize();
 	}
 	
+	/** Calculate the cohesion between points in a given cluster
+	 * @param Cluster c
+	 * @return double Cohesion betwen points in a cluster
+	 */
+	private double  PointBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			for(int j=0;j<c.GetDataPoints().size();j++)
+				proximity+=c.GetDataPoint(i).GetDistance(c.GetDataPoint(j));
+		}
+		return proximity;
+	}
+	/** Calculate the cohesion between points in a given cluster to the centroid
+	 * @param Cluster c
+	 * @return double Cohesion between points in a cluster to the centroid
+	 */
+	private double CentroidBasedCohesion(Cluster c)
+	{
+		double proximity = 0.0;
+		for(int i =0; i<c.GetDataPoints().size();i++)
+		{
+			proximity = c.GetDataPoint(i).GetDistance(c.GetCentroid());
+		}
+		return proximity;
+	}
+	/** Calculate the separation between a cluster centriod
+	 * and the overall centriod
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double separation between centriod of c and center
+	 */
+	private double Separation(Cluster c ,DataPoint center)
+	{
+		return c.GetCentroid().GetDistance(center);
+	}
+	/** Calculate the validity of a cluster
+	 * @param Cluster c
+	 * @param Datapoint center
+	 * @return double validity of cluster c
+	 */
+	public double GetValidity(Cluster c ,DataPoint center)
+	{
+		double prox=PointBasedCohesion(c);
+		double valid= (1.0/c.GetDataPoints().size())*prox + CentroidBasedCohesion(c)+(c.GetDataPoints().size()*Separation(c,center));
+		double outsideCohesionSeparation=0.0;
+		for(int i = 0; i< this.clusters.size();i++)
+		{
+			if(i == c.GetClusterID()) continue;
+			for(int j =0;j<clusters.get(i).GetDataPoints().size();j++)
+			{
+				outsideCohesionSeparation+=c.GetCentroid().GetDistance(clusters.get(i).GetDataPoint(j));
+			}
+			
+			outsideCohesionSeparation/=prox;
+			valid+=outsideCohesionSeparation;
+		}
+		return valid;
+	}
 	public static void main(String[] args) throws BiffException, IOException, InterruptedException
 	{
 		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
@@ -373,16 +440,16 @@ public class K_Means implements I_Algorithm{
 		
 		DataModel winning = new DataModel(path);
 		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
-		Cluster.SetAttributeNames(winning.GetAllAttributes());
+	//	Cluster.SetAttributeNames(winning.GetAllAttributes());
 		I_Algorithm k = new K_Means();
 		
 		//k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
 		//k.Start();
 		
-		String x = winning.GetAllAttributes().get(0);
-		String y = winning.GetAllAttributes().get(1);
+	//	String x = winning.GetAllAttributes().get(0);
+		//String y = winning.GetAllAttributes().get(1);
 		ScatterPlotWindow plot = new ScatterPlotWindow("Plot");
-		plot.SetXY(x, y);
+	//	plot.SetXY(x, y);
 		plot.DrawChart(k.CurrentSolution());
 		plot.pack();
 		plot.setVisible(true);
