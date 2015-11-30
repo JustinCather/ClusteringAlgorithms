@@ -52,16 +52,16 @@ public class Cluster implements Serializable
 		{
 			try 
 			{
-				String type = dataPoints.get(i).getType();
+				String type = dataPoints.get(i).GetType();
 				counts.put(type, counts.get(type) + 1);
 			} 
 			catch (Exception e) {
-				String type = dataPoints.get(i).getType();
+				String type = dataPoints.get(i).GetType();
 				counts.put(type, 1);
 			}
 		}
 		
-		tempType = dataPoints.get(0).getType();
+		tempType = dataPoints.get(0).GetType();
 		highNumber = counts.get(tempType);
 		
 		for (Entry<String, Integer> entry : counts.entrySet())
@@ -123,7 +123,7 @@ public class Cluster implements Serializable
 	public void AddDataPoint(DataPoint p)
 	{
 		p.assigned=true;
-		p.setClusterNumber(this.GetClusterID());
+		p.SetClusterNumber(this.GetClusterID());
 		this.dataPoints.add(p);
 	}
 	
@@ -193,14 +193,14 @@ public class Cluster implements Serializable
 				for (int j = 0; j < sums.length; j++)
 				{
 					dataPoints.get(i).assigned=false;
-					sums[j] += dataPoints.get(i).getAttribute(ATTRIBUTE_NAMES.get(j));
+					sums[j] += dataPoints.get(i).GetAttribute(ATTRIBUTE_NAMES.get(j));
 				}
 			}
 			
 			// Calculate new centroid from sums of the data point attributes.
 			for (int i = 0; i < sums.length; i++)
 			{
-				newCentroid.addAttribute(ATTRIBUTE_NAMES.get(i), sums[i] / dataPoints.size());
+				newCentroid.AddAttribute(ATTRIBUTE_NAMES.get(i), sums[i] / dataPoints.size());
 			}
 			
 			// Set the newly calculated centroid.
@@ -228,8 +228,8 @@ public class Cluster implements Serializable
 		
 		for(int i = 0; i < ATTRIBUTE_NAMES.size(); i++)
 		{
-			double centroidVal = this.centroid.getAttribute(ATTRIBUTE_NAMES.get(i));
-			double pointTwoVal = p.getAttribute(ATTRIBUTE_NAMES.get(i));
+			double centroidVal = this.centroid.GetAttribute(ATTRIBUTE_NAMES.get(i));
+			double pointTwoVal = p.GetAttribute(ATTRIBUTE_NAMES.get(i));
 			summation += Math.pow((centroidVal-pointTwoVal),2);
 		}
 		
@@ -328,10 +328,10 @@ public class Cluster implements Serializable
 		for (int i = 0; i < numPts; i++)
 		{
 			try {
-				String type = dataPoints.get(i).getType();
+				String type = dataPoints.get(i).GetType();
 				counts.put(type, counts.get(type) + 1);
 			} catch (Exception e) {
-				String type = dataPoints.get(i).getType();
+				String type = dataPoints.get(i).GetType();
 				counts.put(type, 1);
 			}
 		}

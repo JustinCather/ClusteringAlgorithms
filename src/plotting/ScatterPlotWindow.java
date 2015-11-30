@@ -50,7 +50,7 @@ public class ScatterPlotWindow extends ApplicationFrame
 			
 			for (int i = 0; i < c.GetDataPoints().size(); i++)
 			{
-				series.add(c.GetDataPoints().get(i).getAttribute(x), c.GetDataPoints().get(i).getAttribute(y));
+				series.add(c.GetDataPoints().get(i).GetAttribute(x), c.GetDataPoints().get(i).GetAttribute(y));
 			}
 			
 			temp.addSeries(series);

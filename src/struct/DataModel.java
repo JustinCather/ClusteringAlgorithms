@@ -251,13 +251,13 @@ public class DataModel implements Serializable
 					{
 						if (useAttributes.contains(this.allAttributes.get(c)))
 						{
-							p.addAttribute(this.allAttributes.get(c),
+							p.AddAttribute(this.allAttributes.get(c),
 									Double.parseDouble(sheet.getCell(c, r).getContents()));
 						}
 					} 
 					else 
 					{
-						p.setType(sheet.getCell(c, r).getContents());
+						p.SetType(sheet.getCell(c, r).getContents());
 					}
 				}
 				
@@ -309,9 +309,9 @@ public class DataModel implements Serializable
 			for(int c = 0; c < col; c++)
 			{
 				if(c != col - 1)
-					p.addAttribute(this.allAttributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
+					p.AddAttribute(this.allAttributes.get(c), Double.parseDouble(sheet.getCell(c, r).getContents()));
 				else
-					p.setType(sheet.getCell(c,r).getContents());
+					p.SetType(sheet.getCell(c,r).getContents());
 			}
 			
 			// Add the point to temporary linked list.		
@@ -391,11 +391,11 @@ public class DataModel implements Serializable
 				for (int i = 0; i < points.size(); i++)
 				{
 					try {
-						String type = points.get(i).getType();
+						String type = points.get(i).GetType();
 						counts.get(type).second++;
 					} catch (Exception e) {
 						// New class.
-						String type = points.get(i).getType();
+						String type = points.get(i).GetType();
 	
 						counts.put(type, new IntPair());
 						// set the counter part of IntPair.
@@ -416,7 +416,7 @@ public class DataModel implements Serializable
 				// Distribute the datapoints into the test and training sets.
 				while (points.size() > 0)
 				{
-					String type = points.getFirst().getType();
+					String type = points.getFirst().GetType();
 					
 					if (counts.get(type).first < counts.get(type).second)
 					{

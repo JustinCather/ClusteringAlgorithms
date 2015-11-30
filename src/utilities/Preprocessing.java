@@ -35,9 +35,9 @@ public class Preprocessing
 			
 			for (int i = 0; i < ds.GetDataSetSize(); i++)
 			{
-				double val = ds.GetPoint(i).getAttribute(a);
+				double val = ds.GetPoint(i).GetAttribute(a);
 				val = Preprocessing.NormailizeDataPoint(val, min, max);
-				ds.GetPoint(i).changeAttributeValue(a, val);
+				ds.GetPoint(i).ChangeAttributeValue(a, val);
 			}
 		}
 	}
@@ -71,7 +71,7 @@ public class Preprocessing
 				for (int j = 0; j < bucketSize; j++)
 				{
 					if (i + j < size)
-						bucket[j] = ds.GetPoint(i + j).getAttribute(a);
+						bucket[j] = ds.GetPoint(i + j).GetAttribute(a);
 				}
 				
 				// Perform smoothing operation.
@@ -94,7 +94,7 @@ public class Preprocessing
 				for (int j = 0; j < bucketSize; j++)
 				{
 					if (i + j < size)
-						ds.GetPoint(i + j).changeAttributeValue(a, bucket[j]);
+						ds.GetPoint(i + j).ChangeAttributeValue(a, bucket[j]);
 				}
 			}		
 		}			
@@ -161,7 +161,7 @@ public class Preprocessing
 			System.out.println("Point " + i);
 			for (String s : test.GetAllAttributes())
 			{
-				System.out.println(test.GetTrainingSet().GetPoint(i).getAttribute(s));
+				System.out.println(test.GetTrainingSet().GetPoint(i).GetAttribute(s));
 			}
 			System.out.println();
 			System.out.println();
@@ -177,7 +177,7 @@ public class Preprocessing
 			System.out.println("Point " + i);
 			for (String s : test.GetAllAttributes())
 			{		
-				System.out.println(test.GetTrainingSet().GetPoint(i).getAttribute(s));
+				System.out.println(test.GetTrainingSet().GetPoint(i).GetAttribute(s));
 			}
 			System.out.println();
 			System.out.println();

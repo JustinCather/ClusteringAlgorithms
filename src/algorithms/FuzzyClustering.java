@@ -232,7 +232,7 @@ public class FuzzyClustering implements I_Algorithm {
 				//System.out.println(summationOfWeights);
 				for(int att = 0; att<attributes.length;att++)
 				{
-					summationofPoints[att]+= data.getAttribute(attributes[att])*Math.pow(this.fuzzyMatrix.get(dp)[i],this.fuzzynessFactor);
+					summationofPoints[att]+= data.GetAttribute(attributes[att])*Math.pow(this.fuzzyMatrix.get(dp)[i],this.fuzzynessFactor);
 				}
 			}
 			DataPoint data = this.set.GetPoint(0);
@@ -240,7 +240,7 @@ public class FuzzyClustering implements I_Algorithm {
 			DataPoint newCenter = new DataPoint();
 			for(int att = 0; att<attributes.length;att++)
 			{
-				newCenter.addAttribute(attributes[att], summationofPoints[att]/summationOfWeights);
+				newCenter.AddAttribute(attributes[att], summationofPoints[att]/summationOfWeights);
 				summationofPoints[att]/=summationOfWeights;
 			}
 			this.crtCentroids.add(newCenter);
@@ -267,7 +267,7 @@ public class FuzzyClustering implements I_Algorithm {
 				if(!crtCentroids.contains(tempPoint))
 				{
 					validIndex = true;
-					tempPoint.setCentroid(true);
+					tempPoint.SetCentroid(true);
 					crtCentroids.add(tempPoint);
 					
 				}

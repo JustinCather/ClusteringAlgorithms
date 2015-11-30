@@ -301,7 +301,7 @@ public class Hierarchical implements I_Algorithm
 			}
 			
 			// post-check.
-			if (closest != -1 && clusters.get(closest).GetCentroid().isVisited() == false)
+			if (closest != -1 && clusters.get(closest).GetCentroid().IsVisited() == false)
 			{
 				// Found the closest neighbor cluster that was no closer to any other cluster.
 				// So combine their data points.
@@ -310,7 +310,7 @@ public class Hierarchical implements I_Algorithm
 				
 				clusters.get(row).AddDataPoints(selected.GetDataPoints());
 				selected.ClearDataPoints();
-				selected.GetCentroid().setVisited(true);
+				selected.GetCentroid().SetVisited(true);
 				
 				selected = null;
 			}			
@@ -342,7 +342,7 @@ public class Hierarchical implements I_Algorithm
 			mSelected = this.clusters.get(c);			
 			selected.AddDataPoints(mSelected.GetDataPoints());
 			mSelected.ClearDataPoints();
-			mSelected.GetCentroid().setVisited(true);
+			mSelected.GetCentroid().SetVisited(true);
 			
 			mSelected = null;
 			selected = null;

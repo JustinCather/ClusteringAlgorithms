@@ -212,7 +212,7 @@ public class K_Means implements I_Algorithm{
 			{
 				for (int j = 0; j < attr.length; j++) 
 				{
-					if ((crtCentroids.get(i).getAttribute(attr[j])- prvCentroids.get(i).getAttribute(attr[j]))>stoppingDistance) 
+					if ((crtCentroids.get(i).GetAttribute(attr[j])- prvCentroids.get(i).GetAttribute(attr[j]))>stoppingDistance) 
 					{
 						isSame = false;
 						break;
@@ -266,7 +266,7 @@ public class K_Means implements I_Algorithm{
 					}
 				}
 				//p.assigned=true;
-				p.setClusterNumber(this.clusters.get(cluster).GetClusterID());
+				p.SetClusterNumber(this.clusters.get(cluster).GetClusterID());
 				this.clusters.get(cluster).AddDataPoint(p);
 				if(set!=null)
 					set.RemoveDataPoint(d);
@@ -340,7 +340,7 @@ public class K_Means implements I_Algorithm{
 				if(!crtCentroids.contains(tempPoint))
 				{
 					validIndex = true;
-					tempPoint.setCentroid(true);
+					tempPoint.SetCentroid(true);
 					crtCentroids.add(tempPoint);
 					clusters.get(i).SetCentroid(tempPoint);
 					

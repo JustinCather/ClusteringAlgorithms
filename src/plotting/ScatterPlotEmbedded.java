@@ -54,14 +54,14 @@ public class ScatterPlotEmbedded
 		for (Cluster c : clusters)
 		{
 			if(c==null)continue;
-			centers.add(c.GetCentroid().getAttribute(this.x),c.GetCentroid().getAttribute(this.y));
+			centers.add(c.GetCentroid().GetAttribute(this.x),c.GetCentroid().GetAttribute(this.y));
 			XYSeries series = new XYSeries("Cluster" + count);
 			count++;
 			
 			for (int i = 0; i < c.GetDataPoints().size(); i++)
 			{
 				
-				series.add(c.GetDataPoints().get(i).getAttribute(this.x), c.GetDataPoints().get(i).getAttribute(this.y));
+				series.add(c.GetDataPoints().get(i).GetAttribute(this.x), c.GetDataPoints().get(i).GetAttribute(this.y));
 			}
 			
 			temp.addSeries(series);

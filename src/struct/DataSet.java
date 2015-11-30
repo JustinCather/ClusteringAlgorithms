@@ -40,7 +40,7 @@ public class DataSet implements Serializable
 	{
 		for (int i = 0; i < points.size(); i++)
 		{
-			points.get(i).setVisited(false);
+			points.get(i).SetVisited(false);
 		}
 	}
 	
@@ -101,9 +101,9 @@ public class DataSet implements Serializable
 		{
 			for(int i = 0; i < points.size(); i++)
 			{
-				if(points.get(i).getAttribute(attribute)<temp)
+				if(points.get(i).GetAttribute(attribute)<temp)
 				{
-					temp = points.get(i).getAttribute(attribute);
+					temp = points.get(i).GetAttribute(attribute);
 				}
 			}
 		} 
@@ -127,9 +127,9 @@ public class DataSet implements Serializable
 		try {
 			for(int i = 0; i < points.size(); i++)
 			{
-				if(points.get(i).getAttribute(attribute) >temp)
+				if(points.get(i).GetAttribute(attribute) >temp)
 				{
-					temp = points.get(i).getAttribute(attribute);
+					temp = points.get(i).GetAttribute(attribute);
 				}
 			}
 		} 
@@ -179,14 +179,14 @@ public class DataSet implements Serializable
 				for (int j = 0; j < sums.length; j++)
 				{
 					points.get(i).assigned=false;
-					sums[j] += points.get(i).getAttribute(attributes[j]);
+					sums[j] += points.get(i).GetAttribute(attributes[j]);
 				}
 			}
 			
 			// Calculate new centroid from sums of the data point attributes.
 			for (int i = 0; i < sums.length; i++)
 			{
-				newCentroid.addAttribute(attributes[i], sums[i] / points.size());
+				newCentroid.AddAttribute(attributes[i], sums[i] / points.size());
 			}
 			return newCentroid;
 		}

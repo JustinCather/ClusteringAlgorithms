@@ -92,10 +92,10 @@ public class TestingPanel extends JPanel
 									}
 								}
 								
-								if (testingSet.GetPoint(i).getType().equals(selectedClass))
+								if (testingSet.GetPoint(i).GetType().equals(selectedClass))
 									numCorrect++;
 								
-								publish("Point " + i + " is of class " + testingSet.GetPoint(i).getType() + " and was assigned to " + selectedClass + ".\n");
+								publish("Point " + i + " is of class " + testingSet.GetPoint(i).GetType() + " and was assigned to " + selectedClass + ".\n");
 							}
 						}
 									

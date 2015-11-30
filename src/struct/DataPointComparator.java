@@ -34,7 +34,7 @@ public class DataPointComparator implements Comparator<DataPoint> {
 	@Override
 	public int compare(DataPoint arg0, DataPoint arg1) 
 	{
-		return Double.compare(arg0.getAttribute(this.attr), arg1.getAttribute(this.attr));
+		return Double.compare(arg0.GetAttribute(this.attr), arg1.GetAttribute(this.attr));
 	}
 
 }
