@@ -165,8 +165,7 @@ public class Cluster implements Serializable
 	public void SetCentroid(DataPoint c)
 	{
 		this.centroid = c;
-		if(this.dataPoints.size()==0)
-			this.dataPoints.add(c);
+
 	}
 	
 	/**

@@ -337,7 +337,7 @@ public class K_Means implements I_Algorithm{
 				DataPoint tempPoint;
 				tempPoint = s.GetPoint(index);
 				
-				if(!clusters.contains(tempPoint))
+				if(!crtCentroids.contains(tempPoint))
 				{
 					validIndex = true;
 					tempPoint.setCentroid(true);
