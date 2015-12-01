@@ -1,13 +1,10 @@
 package algorithms;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 
-import gui.UserGUI;
-import gui.UserGui_V2;
+import gui.UserGui;
 import struct.Cluster;
 import struct.DataModel;
-import struct.DataSet;
 import struct.Results;
 
 public interface I_Algorithm extends Runnable   {
@@ -27,7 +24,7 @@ public interface I_Algorithm extends Runnable   {
 	 * @param numClusters How many clusters the data should be clustered into.
 	 * @param gui The GUI that algorithm should interface with.
 	 */
-	void Set(DataModel m, int numClusters, UserGui_V2 gui);
+	void Set(DataModel m, int numClusters, UserGui gui);
 	
 	/** Checks if the algorithm has started and is still running.
 	 * @return True if running, false if not.
@@ -68,4 +65,9 @@ public interface I_Algorithm extends Runnable   {
 	 * @return
 	 */
 	Algorithm GetType();
+	
+	/**
+	 * Generates a serialized result from clustering algorithm.
+	 */
+	void GenerateResult();
 }

@@ -1,36 +1,29 @@
 package algorithms;
 
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.LinkedList;
 
-import javax.naming.spi.DirStateFactory.Result;
-
-import org.jfree.data.xy.XYDataset;
-
-import gui.UserGUI;
-import gui.UserGui_V2;
-import jxl.read.biff.BiffException;
-import plotting.ScatterPlotEmbedded;
-import plotting.ScatterPlotWindow;
+import gui.UserGui;
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
 import struct.Results;
 import utilities.Dice;
-import struct.DataModel.SplitMethod;
 
+
+/**
+ * Implementation of the K Means algorithm.
+ *
+ */
 public class K_Means implements I_Algorithm{
 	
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int numClusters;
-	private UserGui_V2 userGUI;
+	private UserGui userGUI;
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
@@ -135,7 +128,6 @@ public class K_Means implements I_Algorithm{
 				boolean done = CheckStoppingCondition();			
 				if(done)break;
 				model.GetTrainingSet().SetIsPlotting(true);
-				//userGUI.CurrentSolution(this.clusters);
 					
 				System.out.println(i + "th iteration...");
 				for (int x = 0; x < clusters.size(); x++)
@@ -144,11 +136,9 @@ public class K_Means implements I_Algorithm{
 					System.out.println(clusters.get(x).ClusterStats());
 				}
 							
-				//this.ResetPoints();	
 				i++;			
 			}
 			algState = State.Analyzing;
-			//userGUI.CurrentSolution(this.clusters);
 			model.GetTrainingSet().SetIsPlotting(false);
 			
 			System.out.println("Results...");
@@ -177,7 +167,7 @@ public class K_Means implements I_Algorithm{
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui_V2 ugui) {
+	public void Set(DataModel set, int numClusters, UserGui ugui) {
 		
 		this.numClusters = numClusters;
 		userGUI = ugui;
@@ -350,7 +340,8 @@ public class K_Means implements I_Algorithm{
 		}
 	}
 	
-	private void GenerateResult()
+	@Override
+	public void GenerateResult()
 	{
 		result = new Results();
 		result.alg = GetType();
@@ -387,6 +378,7 @@ public class K_Means implements I_Algorithm{
 		}
 		return proximity;
 	}
+	
 	/** Calculate the cohesion between points in a given cluster to the centroid
 	 * @param Cluster c
 	 * @return double Cohesion between points in a cluster to the centroid
@@ -400,6 +392,7 @@ public class K_Means implements I_Algorithm{
 		}
 		return proximity;
 	}
+	
 	/** Calculate the separation between a cluster centriod
 	 * and the overall centriod
 	 * @param Cluster c
@@ -410,6 +403,7 @@ public class K_Means implements I_Algorithm{
 	{
 		return c.GetCentroid().GetDistance(center);
 	}
+	
 	/** Calculate the validity of a cluster
 	 * @param Cluster c
 	 * @param Datapoint center
@@ -433,27 +427,4 @@ public class K_Means implements I_Algorithm{
 		}
 		return valid;
 	}
-	public static void main(String[] args) throws BiffException, IOException, InterruptedException
-	{
-		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
-		int clusters = 3;
-		
-		DataModel winning = new DataModel(path);
-		winning.GetDataFromExcel(SplitMethod.RandomPercent, 75);
-	//	Cluster.SetAttributeNames(winning.GetAllAttributes());
-		I_Algorithm k = new K_Means();
-		
-		//k.Set(winning.GetTrainingSet(), clusters, new UserGUI());
-		//k.Start();
-		
-	//	String x = winning.GetAllAttributes().get(0);
-		//String y = winning.GetAllAttributes().get(1);
-		ScatterPlotWindow plot = new ScatterPlotWindow("Plot");
-	//	plot.SetXY(x, y);
-		plot.DrawChart(k.CurrentSolution());
-		plot.pack();
-		plot.setVisible(true);
-
-	}
-	
 }

@@ -138,13 +138,15 @@ public class DataModel implements Serializable
 		this.percent=percent;
 	}
 	
-
+	/** Sets the SplitMethod and the split percent.
+	 * @param m The SplitMethod
+	 * @param percent The Percent to use for the training set.
+	 */
 	public void SetSplitMethod(SplitMethod m, int percent)
 	{
 		splitMethod=m;
 		SetPercent(percent);
 	}
-	
 
 	/** Gets the training dataset
 	 * @return The training dataset.
@@ -210,9 +212,8 @@ public class DataModel implements Serializable
 	 */
 	public int GetSplitPercent()
 	{
-		return (int)Math.floor(this.percent);
+		return (int)Math.floor(this.percent * 100);
 	}
-	
 	
 	/** Gets the actual data from the excel document.
 	 * @param useAttributes
@@ -325,13 +326,16 @@ public class DataModel implements Serializable
 		this.testingSet.SetAttributes(this.GetAllAttributes());
 	}
 
+	/** Gets the data from the previously specified excel file. 
+	 * @throws BiffException
+	 * @throws IOException
+	 */
 	public void GetDataFromExcel()throws BiffException, IOException
 	{
 		GetDataFromExcel(this.usedAttributes,this.splitMethod,this.percent);
 		if(this.isNormalized)
 		{
 			Preprocessing.NormalizeDataSet(this.trainingSet);
-			Preprocessing.NormalizeDataSet(this.testingSet);
 		}
 		
 		if (this.isSmooth)
@@ -505,20 +509,4 @@ public class DataModel implements Serializable
 			} 
 		}
 	}
-	
-	
-	public static void main(String[] args) throws BiffException, IOException
-	{
-		//String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
-		String path = System.getProperty("user.dir")+ "\\data\\LettersDataSet_LessIsMore.xls";
-				
-		//DataModel test = DataModel.CreateFromExcel(path, SplitMethod.RandomPercent, 99);
-		DataModel test = new DataModel(path);
-		test.GetAttributesFromExcel();
-		//test.GetDataFromExcel(SplitMethod.ClassPercent, 50);
-		test.GetDataFromExcel(test.GetAllAttributes(), SplitMethod.ClassPercent, 50);
-		System.out.println("Training size: " + test.GetTrainingSet().GetDataSetSize());
-		System.out.println("Test size: " + test.GetTestingSet().GetDataSetSize());
-	}
-	
 }

@@ -1,33 +1,31 @@
 package algorithms;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import org.jfree.data.xy.XYDataset;
-
 import gui.MessageBox;
-import gui.UserGUI;
-import gui.UserGui_V2;
+import gui.UserGui;
 import jxl.read.biff.BiffException;
-import plotting.ScatterPlotEmbedded;
-import plotting.ScatterPlotWindow;
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataModel.SplitMethod;
 import struct.DataPoint;
-import struct.DataSet;
 import struct.Results;
 import utilities.Dice;
 
+
+/** Implementation of an associative hierarchical algorithm.
+ * @author Justin
+ *
+ */
 public class Hierarchical implements I_Algorithm
 {
 	//private DataSet dataSet;
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGui_V2 userGUI;
+	private UserGui userGUI;
 	private ArrayList<Cluster> clusters;
 	private DataModel model;
 	private State algState;
@@ -109,7 +107,6 @@ public class Hierarchical implements I_Algorithm
 				boolean done =this.CheckStoppingCondition();
 				if(done)break;
 				model.GetTrainingSet().SetIsPlotting(true);
-				userGUI.CurrentSolution(this.clusters);		
 				
 			}
 			
@@ -126,6 +123,7 @@ public class Hierarchical implements I_Algorithm
 				System.out.println("Cluster " + clusters.get(x).GetClusterID());
 				System.out.println(clusters.get(x).ClusterStats());
 			}
+			model.GetTrainingSet().SetIsPlotting(false);
 			algState=State.Analyzing;
 			GenerateResult();
 
@@ -146,7 +144,7 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui_V2 gui) 
+	public void Set(DataModel set, int numClusters, UserGui gui) 
 	{
 		this.desiredClusterNumber = numClusters;
 		this.userGUI = gui;
@@ -222,9 +220,7 @@ public class Hierarchical implements I_Algorithm
 			for (int col = 0; col < size; col++)
 			{
 				distanceMap[row][col] = clusters.get(row).GetDistance(clusters.get(col).GetCentroid());
-				//System.out.print(distanceMap[row][col] + " ");
 			}
-			//System.out.println("\n");
 		}
 		
 		for (int row = 0; row < size; row++)
@@ -354,7 +350,8 @@ public class Hierarchical implements I_Algorithm
 		return GetType().toString() + " " + model.GetExcelFileName();
 	}
 	
-	private void GenerateResult()
+	@Override
+	public void GenerateResult()
 	{
 		result = new Results();
 		result.alg = GetType();

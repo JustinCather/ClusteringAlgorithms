@@ -14,6 +14,11 @@ import java.util.Calendar;
 import algorithms.Algorithm;
 import jxl.write.DateTime;
 
+
+/**
+ * File to hold the results of an algorithm.
+ *
+ */
 public class Results implements Serializable {
 	public Cluster[] clusters;
 	public String output;
@@ -24,11 +29,15 @@ public class Results implements Serializable {
 	public Double fuzzyFactor;
 	public int desiredClusters;
 	public transient String path;
+	
 	public Results()
 	{
 		path="";
 	}
 	
+	/**
+	 * Generates a serialized file and writes out to disk.
+	 */
 	public void Serialize()
 	{
 		try
@@ -52,6 +61,10 @@ public class Results implements Serializable {
 		}
 	}
 	
+	/** Gets the file name and deserialize it.
+	 * @param fileName The file to deserialize.
+	 * @return The deserialized file.
+	 */
 	public static Results Deserialize(String fileName)
 	{
 		Results e = null;

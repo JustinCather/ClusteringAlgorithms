@@ -4,6 +4,10 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
+/**
+ * Represents a single data point.
+ *
+ */
 public class DataPoint implements Serializable{
 	
 	private HashMap<String, Double> point;
@@ -13,6 +17,7 @@ public class DataPoint implements Serializable{
 	private boolean isReal;
 	private int clusterNumber;
 	public boolean assigned;
+	
 	public DataPoint()
 	{
 		point = new HashMap<String,Double>();

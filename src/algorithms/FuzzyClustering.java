@@ -1,26 +1,28 @@
 package algorithms;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import gui.MessageBox;
-import gui.UserGUI;
-import gui.UserGui_V2;
+import gui.UserGui;
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
 import struct.DataSet;
 import struct.Results;
 
+
+/**
+ * Implementation of a Fuzzy Clustering algorithm.
+ *
+ */
 public class FuzzyClustering implements I_Algorithm {
 
 	private DataSet set;
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGui_V2 userGUI;
+	private UserGui userGUI;
 
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
@@ -32,11 +34,13 @@ public class FuzzyClustering implements I_Algorithm {
 	private Results result;
 	private ArrayList<Cluster> current;
 	private transient double validity,sse;
+	
 	public FuzzyClustering() 
 	{
 		this.isRunning = false;
 		this.isAborted = false;
 	}
+	
 	@Override
 	public void run() {
 			current = new ArrayList<Cluster>();
@@ -96,8 +100,7 @@ public class FuzzyClustering implements I_Algorithm {
 				clusters.get(clusterNumber).AddDataPoint(temp);
 				clusters.get(clusterNumber).SetAttributeNames(new ArrayList<String>(Arrays.asList(temp.GetAttributeNames())));
 			}
-			model.GetTrainingSet().SetIsPlotting(true);
-			userGUI.CurrentSolution(clusters);
+			model.GetTrainingSet().SetIsPlotting(false);
 			
 			System.out.println("Results...");
 			algState=State.Analyzing;
@@ -114,13 +117,9 @@ public class FuzzyClustering implements I_Algorithm {
 			current = clusters;
 			
 			GenerateResult();
-			//this.userGUI.SetAlgorithmFinished();
-			
-			
+		
 			isRunning = false;
 		}
-
-
 	
 	@Override
 	public void Stop()
@@ -129,7 +128,7 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui_V2 gui) {
+	public void Set(DataModel set, int numClusters, UserGui gui) {
 		
 		//dataSet = set;
 		this.desiredClusterNumber = numClusters;
@@ -138,11 +137,13 @@ public class FuzzyClustering implements I_Algorithm {
 		fuzzynessFactor = 3;
 		algState = State.Idle;
 	}
-
+	
+	@Override
 	public int GetDesiredClusters()
 	{
 		return desiredClusterNumber;
 	}
+	
 	@Override
 	public boolean IsRunning() {
 		return this.isRunning;
@@ -179,6 +180,9 @@ public class FuzzyClustering implements I_Algorithm {
 		//isRunning = !isSame;
 	}
 	
+	/**
+	 * Assigns the data points the data set to clusters.
+	 */
 	private void AssignPoints()
 	{
 		//for each data point
@@ -214,6 +218,9 @@ public class FuzzyClustering implements I_Algorithm {
 		
 	}
 	
+	/**
+	 * Takes the data points in the cluster and recalculates the centroid.
+	 */
 	private void RecalcCentroids()
 	{
 		this.prvCentroids = this.crtCentroids;
@@ -247,9 +254,12 @@ public class FuzzyClustering implements I_Algorithm {
 		}
 	}
 	
+	
+	/** Picks the initial centroids for the start of the algorithm.
+	 * @param s The data set to choose the centroids from.
+	 */
 	private void pickInitCentroids(DataSet s)
 	{
-
 		crtCentroids = new ArrayList<DataPoint>();
 		
 		for (int i = 0; i < desiredClusterNumber; i++)
@@ -275,47 +285,71 @@ public class FuzzyClustering implements I_Algorithm {
 		}
 	}
 	
+	/** Sets the stopping distance at which the algorithm will terminate.
+	 * @param dis The distance to terminate the algorithm at.
+	 */
 	public void SetStoppingDistance(double dis)
 	{
 		this.stoppingDistance=dis;
 	}
+	
+	/** Gets the stopping distance at which the algorithm will terminate.
+	 * @return The stopping distance that the algorithm will stop.
+	 */
 	public double GetStoppingDistance()
 	{
 		return stoppingDistance;
 	}
+	
+	/** Sets the influence of the weights of data points when recalculating the centroid.
+	 * @param fuz The value for the influence of the weight.
+	 */
 	public void SetFuzzyFactor(double fuz)
 	{
 		this.fuzzynessFactor=fuz;
 	}
+	
+	/** Gets the influence of the weights of data points when recalculating the centroid.
+	 * @return The value for the influence of the weight.
+	 */
 	public double GetFuzzyFactor()
 	{
 		return fuzzynessFactor;
 	}
+	
+	@Override
 	public Algorithm GetType()
 	{
 		return Algorithm.FuzzyLogic;
 	}
+	
 	public String toString()
 	{
 		return GetType().toString() + " " + model.GetExcelFileName();
 	}
+	
+	@Override
 	public DataModel GetDataModel()
 	{
 		return model;
 	}
 	
+	@Override
 	public State GetState()
 	{
 		return algState;
 	}
 	
+	@Override
 	public Results GetResults()
 	{
 		if(!isRunning)
 			algState = State.Finished;
 		return result;
 	}
-	private void GenerateResult()
+	
+	@Override
+	public void GenerateResult()
 	{
 		result = new Results();
 		result.alg = GetType();
@@ -330,16 +364,16 @@ public class FuzzyClustering implements I_Algorithm {
 		result.output="Overall Validity = " + validity+"\nSum of Squared Error = " +sse+"\n";
 		for (Cluster c : current)
 		{
-			result.output+="Cluster " + clusterNum + "\n" + c.ClusterStats()+"\n";
-			result.output+="Gini = " + c.CaclGiniIndex() + "\n";
+			result.output += "Cluster " + clusterNum + " Gini = " + c.CaclGiniIndex() +"\n"+c.ClusterStats() + "\n\n";
 			clusterNum++;
 		}
 		result.Serialize();
 	}
+	
 	/** Calculate the cohesion between points in a given cluster
 	 * @param Cluster c
 	 * @return double Cohesion betwen points in a cluster
-	 */
+	 */	
 	private double  PointBasedCohesion(Cluster c)
 	{
 		double proximity = 0.0;
@@ -350,6 +384,7 @@ public class FuzzyClustering implements I_Algorithm {
 		}
 		return proximity;
 	}
+	
 	/** Calculate the cohesion between points in a given cluster to the centroid
 	 * @param Cluster c
 	 * @return double Cohesion between points in a cluster to the centroid
@@ -363,6 +398,7 @@ public class FuzzyClustering implements I_Algorithm {
 		}
 		return proximity;
 	}
+	
 	/** Calculate the separation between a cluster centriod
 	 * and the overall centriod
 	 * @param Cluster c
@@ -373,6 +409,7 @@ public class FuzzyClustering implements I_Algorithm {
 	{
 		return c.GetCentroid().GetDistance(center);
 	}
+	
 	/** Calculate the validity of a cluster
 	 * @param Cluster c
 	 * @param Datapoint center

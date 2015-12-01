@@ -24,27 +24,45 @@ public class ScatterPlotEmbedded
 	{
 	}
 	
+	/** Arg constructor.
+	 * @param x The x label.
+	 * @param y The y label.
+	 */
 	public ScatterPlotEmbedded(String x, String y)
 	{
 		this.SetXY(x, y);
 	}
 	
+	/** Set the y label.
+	 * @param y The y label.
+	 */
 	public void SetY(String y)
 	{
 		this.y = y;
 	}
 	
+	/** Set the x label.
+	 * @param x The x label.
+	 */
 	public void SetX(String x)
 	{
 		this.x = x;
 	}
 	
+	/** Sets the x and y labels.
+	 * @param x The x label.
+	 * @param y The y label.
+	 */
 	public void SetXY(String x, String y)
 	{
 		this.x = x;
 		this.y = y;
 	}
 	
+	/** Creates a chart panel and returns it.
+	 * @param clusters The clusters to create the chart with.
+	 * @return A chart panel of the clusters.
+	 */
 	public ChartPanel DrawChart(ArrayList<Cluster> clusters)
 	{
 		XYSeriesCollection temp = new XYSeriesCollection();
@@ -88,6 +106,10 @@ public class ScatterPlotEmbedded
 
         return chartPanel;
 	}
+	
+	/** Creates a chart panel and returns it.
+	 * @returnA Chart panel.
+	 */
 	public ChartPanel DrawChart()
 	{
 		XYSeriesCollection temp = new XYSeriesCollection();

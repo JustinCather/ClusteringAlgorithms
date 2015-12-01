@@ -1,14 +1,10 @@
 package struct;
 
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map.Entry;
-
-import jxl.read.biff.BiffException;
-import struct.DataModel.SplitMethod;
 
 /** Class that contains datapoints that are near to one another.
  * @author Justin
@@ -300,11 +296,9 @@ public class Cluster implements Serializable
         return gini;
 	}
 	
-	public double CalcAbsoluteError()
-	{
-		return 0.0;
-	}
-	
+	/** Calculates the Squared Error for the cluster.
+	 * @return value > 0.
+	 */
 	public double CalcSquaredError()
 	{
 		double sse = 0.0;
@@ -337,39 +331,5 @@ public class Cluster implements Serializable
 		}
 		
 		return counts;
-	}
-	
-	public static void main(String[] args) throws BiffException, IOException
-	{
-		String path = System.getProperty("user.dir")+ "\\data\\Iris Data Set.xls";
-		DataModel winning = new DataModel(path);
-		winning.GetAttributesFromExcel();
-		winning.GetDataFromExcel(SplitMethod.ClassPercent, 75);
-		//SetAttributeNames(winning.GetAllAttributes());
-		ArrayList<Cluster> clusters = new ArrayList<Cluster>();
-		int clusterCount = 0;
-		Cluster temp = new Cluster(clusterCount);
-		
-		for (int i = 0; i < winning.GetTrainingSet().GetDataSetSize(); i++)
-		{
-			if (i != 0 && i % 50 == 0)
-			{
-				clusterCount++;
-				clusters.add(temp);
-				temp = new Cluster(clusterCount);
-			}
-			
-			temp.AddDataPoint(winning.GetTrainingSet().GetPoint(i));
-		}
-		
-		if (!clusters.contains(temp))
-			clusters.add(temp);
-		
-		for (int i = 0; i < clusters.size(); i++)
-		{
-			System.out.println("Cluster " + clusters.get(i).clusterID + ":");
-			clusters.get(i).RecalculateCentroid();
-			clusters.get(i).GetCentroid().toString();
-		}
 	}
 }

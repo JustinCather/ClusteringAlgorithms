@@ -4,6 +4,11 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+
+/**
+ * Represents a data set of data points.
+ *
+ */
 public class DataSet implements Serializable
 {	
 	private ArrayList<String> attributes;
@@ -158,6 +163,10 @@ public class DataSet implements Serializable
 		return this.points;
 	}
 	
+	/** Gets the centroid of the data set.
+	 * @param attributes The attributes have the data set.
+	 * @return The data point that represents the centroid of the data set.
+	 */
 	public DataPoint GetCenter(String[] attributes)
 	{
 		DataPoint newCentroid = new DataPoint();
