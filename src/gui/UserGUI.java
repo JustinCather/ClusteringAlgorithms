@@ -962,6 +962,10 @@ public class UserGui {
 						trainingPercentField.setText(((Integer)s.dataModel.GetSplitPercent()).toString());
 						clusterField.setText(((Integer)s.desiredClusters).toString());
 						chckbxNormalizeData.setSelected(s.dataModel.GetNormalized());
+						chckbxSmooth.setSelected(s.dataModel.isSmooth());
+						textFieldNumBins.setText(((Integer)s.dataModel.GetBucketSize()).toString());
+						comboBoxSmoothMethod.setSelectedItem(s.dataModel.GetSmoothMethod());
+					
 				}
 				 LoadGraphsAndResults(s);
 			}			

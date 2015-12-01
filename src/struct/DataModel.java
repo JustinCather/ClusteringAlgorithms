@@ -93,6 +93,22 @@ public class DataModel implements Serializable
 		this.numSmoothBuckets = numBuckets;
 		this.smoothMethod = m;
 	}
+	
+	/** Gets the size of the buckets.
+	 * @return The number of buckets.
+	 */
+	public int GetBucketSize()
+	{
+		return this.numSmoothBuckets;
+	}
+	
+	/** Gets the smooth method.
+	 * @return The smooth method.
+	 */
+	public SmoothMethod GetSmoothMethod()
+	{
+		return this.smoothMethod;
+	}
 
 	/** Gets the path of the excel file.
 	 * @return
