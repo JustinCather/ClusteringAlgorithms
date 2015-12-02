@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import gui.UserGui;
+import gui.UserGUI;
+
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
@@ -22,7 +23,7 @@ public class FuzzyClustering implements I_Algorithm {
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGui userGUI;
+	private UserGUI userGUI;
 
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
@@ -128,13 +129,13 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui gui) {
+	public void Set(DataModel set, int numClusters, UserGUI gui) {
 		
 		//dataSet = set;
 		this.desiredClusterNumber = numClusters;
 		userGUI = gui;
 		this.model = set;
-		fuzzynessFactor = 3;
+		//fuzzynessFactor = 3;
 		algState = State.Idle;
 	}
 	

@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import gui.MessageBox;
-import gui.UserGui;
+import gui.UserGUI;
 import jxl.read.biff.BiffException;
 import struct.Cluster;
 import struct.DataModel;
@@ -25,7 +25,7 @@ public class Hierarchical implements I_Algorithm
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGui userGUI;
+	private UserGUI userGUI;
 	private ArrayList<Cluster> clusters;
 	private DataModel model;
 	private State algState;
@@ -144,7 +144,7 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui gui) 
+	public void Set(DataModel set, int numClusters, UserGUI gui) 
 	{
 		this.desiredClusterNumber = numClusters;
 		this.userGUI = gui;

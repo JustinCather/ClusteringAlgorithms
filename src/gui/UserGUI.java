@@ -74,14 +74,14 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import utilities.Preprocessing.SmoothMethod;
 
-public class UserGui {
+public class UserGUI {
 
 	private I_Algorithm algorithm;
 	private DataModel dataModel;
 	private ScatterPlotEmbedded plot;
 
 	private TestingPanel testingPanel;
-	private UserGui passable;
+	private UserGUI passable;
 	private JFormattedTextField textFieldNumBins;
 	private JCheckBox chckbxSmooth;
 	private JComboBox<SmoothMethod> comboBoxSmoothMethod;
@@ -110,7 +110,7 @@ public class UserGui {
 			public void run() {
 				try {
 					UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-					UserGui window = new UserGui();
+					UserGUI window = new UserGUI();
 					window.frmClusteringAlgorithms.setVisible(true);
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -120,7 +120,7 @@ public class UserGui {
 		
 	}
 	
-	public UserGui() {
+	public UserGUI() {
 		initialize();
 		passable=this;
 		 int delay = 10; //milliseconds

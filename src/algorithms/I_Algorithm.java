@@ -2,7 +2,8 @@ package algorithms;
 
 import java.util.ArrayList;
 
-import gui.UserGui;
+import gui.UserGUI;
+
 import struct.Cluster;
 import struct.DataModel;
 import struct.Results;
@@ -24,7 +25,7 @@ public interface I_Algorithm extends Runnable   {
 	 * @param numClusters How many clusters the data should be clustered into.
 	 * @param gui The GUI that algorithm should interface with.
 	 */
-	void Set(DataModel m, int numClusters, UserGui gui);
+	void Set(DataModel m, int numClusters, UserGUI gui);
 	
 	/** Checks if the algorithm has started and is still running.
 	 * @return True if running, false if not.

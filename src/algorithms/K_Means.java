@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
 
-import gui.UserGui;
+import gui.UserGUI;
 import struct.Cluster;
 import struct.DataModel;
 import struct.DataPoint;
@@ -23,7 +23,7 @@ public class K_Means implements I_Algorithm{
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int numClusters;
-	private UserGui userGUI;
+	private UserGUI userGUI;
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
@@ -167,7 +167,7 @@ public class K_Means implements I_Algorithm{
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGui ugui) {
+	public void Set(DataModel set, int numClusters, UserGUI ugui) {
 		
 		this.numClusters = numClusters;
 		userGUI = ugui;
