@@ -23,7 +23,6 @@ public class FuzzyClustering implements I_Algorithm {
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGUI userGUI;
 
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
@@ -129,14 +128,11 @@ public class FuzzyClustering implements I_Algorithm {
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGUI gui) {
+	public void Set(DataModel set, int numClusters) {
 		
-		//dataSet = set;
 		this.desiredClusterNumber = numClusters;
-		userGUI = gui;
 		this.model = set;
-		//fuzzynessFactor = 3;
-		algState = State.Idle;
+		this.algState = State.Idle;
 	}
 	
 	@Override

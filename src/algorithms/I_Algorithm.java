@@ -25,7 +25,7 @@ public interface I_Algorithm extends Runnable   {
 	 * @param numClusters How many clusters the data should be clustered into.
 	 * @param gui The GUI that algorithm should interface with.
 	 */
-	void Set(DataModel m, int numClusters, UserGUI gui);
+	void Set(DataModel m, int numClusters);
 	
 	/** Checks if the algorithm has started and is still running.
 	 * @return True if running, false if not.

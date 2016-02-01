@@ -25,7 +25,6 @@ public class Hierarchical implements I_Algorithm
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int desiredClusterNumber;
-	private UserGUI userGUI;
 	private ArrayList<Cluster> clusters;
 	private DataModel model;
 	private State algState;
@@ -144,12 +143,11 @@ public class Hierarchical implements I_Algorithm
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGUI gui) 
+	public void Set(DataModel set, int numClusters) 
 	{
 		this.desiredClusterNumber = numClusters;
-		this.userGUI = gui;
-		model = set;
-		algState = State.Idle;
+		this.model = set;
+		this.algState = State.Idle;
 	}
 
 	@Override

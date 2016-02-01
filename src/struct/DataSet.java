@@ -187,7 +187,7 @@ public class DataSet implements Serializable
 				// sum up each attribute of each data point.
 				for (int j = 0; j < sums.length; j++)
 				{
-					points.get(i).assigned=false;
+					points.get(i).assigned = false;
 					sums[j] += points.get(i).GetAttribute(attributes[j]);
 				}
 			}

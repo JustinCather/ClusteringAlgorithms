@@ -23,7 +23,6 @@ public class K_Means implements I_Algorithm{
 	private volatile boolean isAborted;
 	private boolean isRunning;
 	private int numClusters;
-	private UserGUI userGUI;
 	private ArrayList<DataPoint> prvCentroids;
 	private ArrayList<DataPoint> crtCentroids;
 	private ArrayList<Cluster> clusters;
@@ -33,6 +32,7 @@ public class K_Means implements I_Algorithm{
 	private State algState;
 	private Results result;
 	private transient double validity,sse;
+	
 	public K_Means()
 	{
 		isRunning = false;
@@ -167,14 +167,13 @@ public class K_Means implements I_Algorithm{
 	}
 
 	@Override
-	public void Set(DataModel set, int numClusters, UserGUI ugui) {
+	public void Set(DataModel set, int numClusters) {
 		
 		this.numClusters = numClusters;
-		userGUI = ugui;
 		this.model = set;
-		clusters = new ArrayList<Cluster>(this.numClusters);
-		algState = State.Idle;
-		result = null;
+		this.clusters = new ArrayList<Cluster>(this.numClusters);
+		this.algState = State.Idle;
+		this.result = null;
 	}
 
 	@Override

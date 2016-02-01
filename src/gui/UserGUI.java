@@ -423,7 +423,7 @@ public class UserGUI {
 													}
 													
 													
-													algorithm.Set(m, numberOfClusters,passable);
+													algorithm.Set(m, numberOfClusters);
 													((DefaultListModel)list_1.getModel()).addElement(algorithm);
 												} 
 												else 

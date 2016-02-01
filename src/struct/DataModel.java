@@ -20,6 +20,7 @@ import utilities.Preprocessing.SmoothMethod;
  * @author Justin
  *
  */
+@SuppressWarnings("serial")
 public class DataModel implements Serializable
 {
 	class IntPair
@@ -151,7 +152,7 @@ public class DataModel implements Serializable
 	public void SetSplitMethod(SplitMethod m, double splitPercent)
 	{
 		this.splitMethod = m;
-		this.percent=percent;
+		this.percent = splitPercent;
 	}
 	
 	/** Sets the SplitMethod and the split percent.
@@ -160,7 +161,7 @@ public class DataModel implements Serializable
 	 */
 	public void SetSplitMethod(SplitMethod m, int percent)
 	{
-		splitMethod=m;
+		splitMethod = m;
 		SetPercent(percent);
 	}
 
@@ -352,11 +353,13 @@ public class DataModel implements Serializable
 		if(this.isNormalized)
 		{
 			Preprocessing.NormalizeDataSet(this.trainingSet);
+			Preprocessing.NormalizeDataSet(this.testingSet);
 		}
 		
 		if (this.isSmooth)
 		{
 			Preprocessing.SmoothDataSet(this.trainingSet, this.numSmoothBuckets, this.smoothMethod);
+			Preprocessing.SmoothDataSet(this.testingSet, this.numSmoothBuckets, this.smoothMethod);
 		}
 	}
 	
